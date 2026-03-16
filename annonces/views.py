@@ -451,8 +451,9 @@ def logement_detail(request, id=None, pk=None):
             Prefetch("photos", queryset=Photo.objects.order_by("id")),
             "signalements__utilisateur",
         ),
-        id=logement_id,
+        pk=logement_id,
     )
+    attach_logement_image_url(logement)
     if (
         not can_access_public_or_private_logement(request, logement)
     ):

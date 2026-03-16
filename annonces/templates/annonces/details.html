@@ -328,9 +328,9 @@
                         <div class="min-w-full snap-center">
                             <img
                                 id="gallery-main-image"
-                                src="{{ photos.0.image|media_src }}"
-                                data-full-src="{{ photos.0.image|media_src }}"
-                                alt="Photo 1"
+                                src="{{ logement.image_url|default:default_image_url }}"
+                                data-full-src="{{ logement.image_url|default:default_image_url }}"
+                                alt="{{ logement.titre }}"
                                 class="gallery-main-image h-[290px] w-full object-cover sm:h-[380px] md:h-[480px]"
                             >
                         </div>
@@ -351,12 +351,12 @@
                         <button
                             type="button"
                             data-gallery-thumb
-                            data-full-src="{{ photo.image|media_src }}"
+                            data-full-src="{{ photo.image.url }}"
                             data-alt="Photo {{ forloop.counter }}"
                             class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
                             aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
                         >
-                            <img src="{{ photo.image|media_src }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;">
+                            <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;">
                         </button>
                     {% empty %}
                         <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">Aucune photo suppl&eacute;mentaire</div>
@@ -685,8 +685,8 @@
         {% for similar in similar_logements %}
             <article class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
                 <div class="relative">
-                    {% if similar.main_photo %}
-                        <img src="{{ similar.main_photo.image|media_src }}" alt="Photo de {{ similar.commune }}" class="h-56 w-full object-cover" style="object-fit: cover;">
+                    {% if similar.image_url %}
+                        <img src="{{ similar.image_url }}" alt="{{ similar.titre }}" class="h-56 w-full object-cover" style="object-fit: cover;">
                     {% else %}
                         <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-56 w-full object-cover">
                     {% endif %}
@@ -736,4 +736,3 @@
     </div>
 </div>
 {% endblock %}
-{% load annonces_media %}
