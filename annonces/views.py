@@ -29,6 +29,21 @@ from .forms import (
 from .models import CommentaireAdmin, ContactUnlock, Favori, Logement, MessageVisiteur, Notification, Photo, Signalement
 
 
+def resolve_media_url(value):
+    if not value:
+        return ""
+    if isinstance(value, str):
+        return value
+    return getattr(value, "url", "") or str(value)
+
+
+def attach_logement_image_url(logement):
+    main_photo = getattr(logement, "main_photo", None)
+    image_value = getattr(main_photo, "image", None) if main_photo else None
+    logement.image_url = resolve_media_url(image_value)
+    return logement
+
+
 DEFAULT_CITY_COMMUNES = {
     "Kinshasa": [
         "Gombe", "Limete", "Ngaliema", "Lingwala", "Kintambo", "Bandalungwa", "Barumbu",
@@ -293,6 +308,7 @@ def build_home_context(request):
         )
     for logement in logements:
         logement.main_photo = logement.photos.first()
+        attach_logement_image_url(logement)
         logement.is_favorite = logement.id in favorite_ids
         logement.is_compared = logement.id in compare_ids
         logement.trust_score = build_trust_score(logement, photos_count=logement.photos.count())
@@ -476,6 +492,7 @@ def logement_detail(request, id):
         )
     for similar in similar_logements:
         similar.main_photo = similar.photos.first()
+        attach_logement_image_url(similar)
         similar.is_favorite = similar.id in similar_favorite_ids
     return render(
         request,
@@ -540,6 +557,7 @@ def compare_view(request):
     logements = [logement for logement in logements if can_access_public_or_private_logement(request, logement)]
     for logement in logements:
         logement.main_photo = logement.photos.first()
+        attach_logement_image_url(logement)
         logement.trust_score = build_trust_score(logement, photos_count=logement.photos.count())
     return render(request, "annonces/compare.html", {"logements": logements})
 
@@ -560,6 +578,7 @@ def proprietaire_profile(request, user_id):
     )
     for logement in logements:
         logement.main_photo = logement.photos.first()
+        attach_logement_image_url(logement)
         logement.trust_score = build_trust_score(logement, photos_count=logement.photos.count())
     stats = {
         "total": len(logements),
