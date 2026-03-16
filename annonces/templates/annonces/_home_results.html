@@ -6,6 +6,31 @@
             height: 200px;
             object-fit: cover;
         }
+
+        .card-new-badge {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border-radius: 999px;
+            background: #ff6600;
+            color: #fff;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            padding: 0.55rem 0.9rem;
+            box-shadow: 0 10px 24px rgba(255, 102, 0, 0.28);
+            z-index: 2;
+        }
+
+        @media (max-width: 767px) {
+            .mobile-card-wrap {
+                width: 95%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
     </style>
     <div class="mb-6 flex items-end justify-between gap-4">
         <div>
@@ -26,7 +51,7 @@
         <div class="swiper-wrapper">
             {% for logement in logements|slice:":8" %}
                 <div class="swiper-slide pb-2">
-                    <article class="card-lift overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+                    <article class="mobile-card-wrap card-lift overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                         <div class="relative">
                             {% if logement.image_url %}
                                 <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
@@ -39,8 +64,8 @@
                             {% elif logement.statut == "LOUE" %}
                                 <span class="status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-700 px-3 py-2 text-[11px] text-white">LOU&Eacute;</span>
                             {% elif logement.is_new %}
-                                <span class="status-badge absolute left-4 top-4 inline-flex items-center gap-2 rounded-[0.9rem] bg-orange-500 px-3 py-2 text-[11px] text-white">
-                                    <i class="fa-solid fa-bolt"></i>
+                                <span class="card-new-badge">
+                                    <span aria-hidden="true">⚡</span>
                                     NOUVEAU
                                 </span>
                             {% elif logement.statut == "APPROUVEE" %}
@@ -123,7 +148,7 @@
 
     <div id="results-cards-view" class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {% for logement in logements %}
-            <article data-reveal class="card-lift reveal-up overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+            <article data-reveal class="mobile-card-wrap card-lift reveal-up overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                 <div class="relative">
                     {% if logement.image_url %}
                         <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
@@ -136,8 +161,8 @@
                     {% elif logement.statut == "LOUE" %}
                         <span class="status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-700 px-3 py-2 text-[11px] text-white">LOU&Eacute;</span>
                     {% elif logement.is_new %}
-                        <span class="status-badge absolute left-4 top-4 inline-flex items-center gap-2 rounded-[0.9rem] bg-orange-500 px-3 py-2 text-[11px] text-white">
-                            <i class="fa-solid fa-bolt"></i>
+                        <span class="card-new-badge">
+                            <span aria-hidden="true">⚡</span>
                             NOUVEAU
                         </span>
                     {% elif logement.statut == "APPROUVEE" %}

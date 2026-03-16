@@ -27,6 +27,13 @@
         };
     </script>
     <style>
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+        }
+
         .line-clamp-3 {
             display: -webkit-box;
             -webkit-line-clamp: 3;
@@ -123,6 +130,16 @@
                 background: rgba(0, 51, 153, 0.08);
                 color: #003399;
                 box-shadow: inset 0 0 0 1px rgba(0, 51, 153, 0.08);
+            }
+
+            .page-shell,
+            main,
+            section,
+            div,
+            nav,
+            footer,
+            header {
+                max-width: 100%;
             }
         }
     </style>
