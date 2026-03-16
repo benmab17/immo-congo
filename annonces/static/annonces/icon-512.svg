@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="120" fill="#003399"/>
+  <rect x="72" y="72" width="368" height="368" rx="96" fill="#f8f7f2" opacity="0.12"/>
+  <path d="M122 250L256 132L390 250V390C390 406.569 376.569 420 360 420H152C135.431 420 122 406.569 122 390V250Z" fill="#ffffff"/>
+  <path d="M212 420V292H300V420" fill="#ff6600"/>
+  <text x="256" y="108" text-anchor="middle" font-size="64" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">IC</text>
+</svg>
