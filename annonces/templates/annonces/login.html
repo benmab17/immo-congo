@@ -1,0 +1,41 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Connexion | Immo Congo{% endblock %}
+
+{% block content %}
+<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-md items-center px-4 py-8 sm:px-6">
+    <div class="w-full rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+        <h1 class="text-3xl font-bold text-slate-900">Connexion</h1>
+        <p class="mt-2 text-sm text-slate-500">Entrez votre num&eacute;ro de t&eacute;l&eacute;phone et votre mot de passe.</p>
+
+        <form method="post" class="mt-6 space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% if form.non_field_errors %}
+                <div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ form.phone.id_for_label }}">Num&eacute;ro de t&eacute;l&eacute;phone</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}<p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ form.password.id_for_label }}">Mot de passe</label>
+                {{ form.password }}
+                {% if form.password.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="flex items-center justify-end">
+                <a href="{% url 'annonces:password_reset' %}" class="text-sm font-semibold text-primary hover:text-primary/80">
+                    Mot de passe oubli&eacute; ?
+                </a>
+            </div>
+            <button type="submit" class="w-full rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white">Se connecter</button>
+        </form>
+
+        <p class="mt-5 text-sm text-slate-500">
+            Pas encore de compte ?
+            <a href="{% url 'annonces:signup' %}" class="font-semibold text-primary">Inscription</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

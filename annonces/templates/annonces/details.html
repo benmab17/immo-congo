@@ -1,0 +1,738 @@
+{% extends "annonces/base.html" %}
+{% load humanize %}
+
+{% block title %}D&eacute;tails | Immo Congo{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .gallery-main-image {
+        opacity: 1;
+        transition: opacity 0.28s ease;
+        cursor: zoom-in;
+    }
+
+    .gallery-main-image.is-fading {
+        opacity: 0.18;
+    }
+
+    .gallery-thumb {
+        cursor: pointer;
+        transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+        opacity: 0.76;
+    }
+
+    .gallery-thumb:hover {
+        transform: translateY(-1px);
+        opacity: 0.94;
+    }
+
+    .gallery-thumb.is-active {
+        opacity: 1;
+        box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.9);
+    }
+
+    .lightbox-backdrop {
+        background: rgba(15, 23, 42, 0.86);
+        backdrop-filter: blur(6px);
+    }
+
+    .floating-glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.14);
+    }
+
+    .favorite-pop {
+        animation: favorite-pop 0.45s ease;
+    }
+
+    .favorite-toggle.is-active {
+        color: #dc2626;
+    }
+
+    .verified-pulse {
+        animation: verified-pulse 2.2s ease-in-out infinite;
+    }
+
+    .detail-map {
+        height: 270px;
+        border-radius: 1.5rem;
+        overflow: hidden;
+    }
+
+    .cinematic-base {
+        opacity: 0;
+        transform: translateY(24px) scale(0.985);
+    }
+
+    .cinematic-in {
+        animation: cinematic-in 0.72s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+    }
+
+    @keyframes favorite-pop {
+        0% { transform: scale(1); }
+        30% { transform: scale(1.18); }
+        60% { transform: scale(0.94); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes verified-pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.38); }
+        70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    @keyframes cinematic-in {
+        0% { opacity: 0; transform: translateY(24px) scale(0.985); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media print {
+        header, footer, nav, #detail-action-bar, #signalement-panel, #signalement-toggle, #gallery-lightbox {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        section, article, aside, div {
+            box-shadow: none !important;
+        }
+    }
+</style>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const cinematicItems = document.querySelectorAll("[data-cinematic]");
+        const toggle = document.getElementById("signalement-toggle");
+        const panel = document.getElementById("signalement-panel");
+        if (toggle && panel) {
+            toggle.addEventListener("click", function () {
+                panel.classList.toggle("hidden");
+            });
+        }
+
+        const mainImage = document.getElementById("gallery-main-image");
+        const thumbButtons = Array.from(document.querySelectorAll("[data-gallery-thumb]"));
+        const lightbox = document.getElementById("gallery-lightbox");
+        const lightboxImage = document.getElementById("gallery-lightbox-image");
+        const lightboxClose = document.getElementById("gallery-lightbox-close");
+
+        const setActiveThumb = (targetSrc) => {
+            thumbButtons.forEach((button) => {
+                const isActive = button.dataset.fullSrc === targetSrc;
+                button.classList.toggle("is-active", isActive);
+                button.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+        };
+
+        const updateMainImage = (src, alt) => {
+            if (!mainImage || !src || mainImage.src === src) {
+                setActiveThumb(src || (mainImage ? mainImage.src : ""));
+                return;
+            }
+
+            mainImage.classList.add("is-fading");
+            window.setTimeout(() => {
+                mainImage.src = src;
+                mainImage.alt = alt || mainImage.alt;
+                mainImage.dataset.fullSrc = src;
+                setActiveThumb(src);
+                mainImage.classList.remove("is-fading");
+            }, 120);
+        };
+
+        thumbButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                updateMainImage(button.dataset.fullSrc, button.dataset.alt);
+            });
+        });
+
+        const openLightbox = () => {
+            if (!lightbox || !lightboxImage || !mainImage) return;
+            lightboxImage.src = mainImage.dataset.fullSrc || mainImage.src;
+            lightboxImage.alt = mainImage.alt;
+            lightbox.classList.remove("hidden");
+            document.body.classList.add("overflow-hidden");
+        };
+
+        const closeLightbox = () => {
+            if (!lightbox) return;
+            lightbox.classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
+        };
+
+        if (mainImage) {
+            mainImage.addEventListener("click", openLightbox);
+            setActiveThumb(mainImage.dataset.fullSrc || mainImage.src);
+        }
+
+        if (lightboxClose) {
+            lightboxClose.addEventListener("click", closeLightbox);
+        }
+
+        if (lightbox) {
+            lightbox.addEventListener("click", (event) => {
+                if (event.target === lightbox) {
+                    closeLightbox();
+                }
+            });
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && lightbox && !lightbox.classList.contains("hidden")) {
+                closeLightbox();
+            }
+        });
+
+        const getCookie = (name) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(";").shift();
+            return "";
+        };
+
+        const favoriteButton = document.getElementById("detail-favorite-toggle");
+        if (favoriteButton) {
+            favoriteButton.addEventListener("click", async function () {
+                if (favoriteButton.dataset.authenticated !== "true") {
+                    window.location.href = favoriteButton.dataset.loginUrl;
+                    return;
+                }
+
+                const response = await fetch(favoriteButton.dataset.url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    return;
+                }
+
+                favoriteButton.classList.toggle("is-active", data.is_favorite);
+                const icon = favoriteButton.querySelector("i");
+                icon.className = `${data.is_favorite ? "fa-solid" : "fa-regular"} fa-heart`;
+                favoriteButton.classList.remove("favorite-pop");
+                void favoriteButton.offsetWidth;
+                favoriteButton.classList.add("favorite-pop");
+                if (window.immoPulseFeedback) {
+                    window.immoPulseFeedback();
+                }
+            });
+        }
+
+        const compareButton = document.getElementById("detail-compare-toggle");
+        if (compareButton) {
+            compareButton.addEventListener("click", async function () {
+                const response = await fetch(compareButton.dataset.url, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    return;
+                }
+                compareButton.classList.toggle("bg-slate-900", data.is_compared);
+                compareButton.classList.toggle("text-white", data.is_compared);
+                compareButton.classList.toggle("bg-white", !data.is_compared);
+                compareButton.classList.toggle("text-slate-800", !data.is_compared);
+            });
+        }
+
+        const shareButton = document.getElementById("detail-share-button");
+        if (shareButton) {
+            shareButton.addEventListener("click", async function () {
+                const shareData = {
+                    title: "{{ logement.offre_label|escapejs }}",
+                    text: "{{ logement.commune|escapejs }}, {{ logement.ville_affichee|escapejs }} - {{ logement.prix }} {{ logement.devise }}",
+                    url: window.location.href,
+                };
+
+                if (navigator.share) {
+                    try {
+                        await navigator.share(shareData);
+                    } catch (error) {
+                    }
+                    return;
+                }
+
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareData.title} - ${shareData.url}`)}`;
+                window.open(whatsappUrl, "_blank", "noopener");
+            });
+        }
+
+        const printButton = document.getElementById("detail-print-button");
+        if (printButton) {
+            printButton.addEventListener("click", function () {
+                window.print();
+            });
+        }
+
+        const mapElement = document.getElementById("detail-map");
+        if (mapElement && window.L) {
+            const lat = Number(mapElement.dataset.lat);
+            const lng = Number(mapElement.dataset.lng);
+            if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                const map = L.map(mapElement, {
+                    scrollWheelZoom: false,
+                    zoomControl: true,
+                }).setView([lat, lng], 15);
+
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    maxZoom: 19,
+                    attribution: "&copy; OpenStreetMap",
+                }).addTo(map);
+
+                L.marker([lat, lng]).addTo(map).bindPopup("Localisation du bien");
+            }
+        }
+
+        if (cinematicItems.length) {
+            cinematicItems.forEach((item, index) => {
+                item.style.animationDelay = `${Math.min(index * 90, 360)}ms`;
+                item.classList.add("cinematic-in");
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-4 sm:px-6 md:px-8 md:py-8">
+    <div class="mb-4">
+        <button
+            type="button"
+            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{% url 'annonces:home' %}'; }"
+            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+        >
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Retour</span>
+        </button>
+    </div>
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+        <div class="space-y-5">
+            <div data-cinematic class="cinematic-base overflow-hidden rounded-[2rem] bg-white shadow-soft">
+                <div class="hide-scrollbar flex snap-x snap-mandatory overflow-x-auto">
+                    {% if photos %}
+                        <div class="min-w-full snap-center">
+                            <img
+                                id="gallery-main-image"
+                                src="{{ photos.0.image.url }}"
+                                data-full-src="{{ photos.0.image.url }}"
+                                alt="Photo 1"
+                                class="gallery-main-image h-[290px] w-full object-cover sm:h-[380px] md:h-[480px]"
+                            >
+                        </div>
+                    {% else %}
+                        <div class="min-w-full snap-center">
+                            <img
+                                id="gallery-main-image"
+                                src="{{ default_image_url }}"
+                                data-full-src="{{ default_image_url }}"
+                                alt="Image par d&eacute;faut Immo Congo"
+                                class="gallery-main-image h-[290px] w-full object-cover sm:h-[380px] md:h-[480px]"
+                            >
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex gap-2 overflow-x-auto px-4 py-4">
+                    {% for photo in photos %}
+                        <button
+                            type="button"
+                            data-gallery-thumb
+                            data-full-src="{{ photo.image.url }}"
+                            data-alt="Photo {{ forloop.counter }}"
+                            class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
+                            aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+                        >
+                            <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover">
+                        </button>
+                    {% empty %}
+                        <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">Aucune photo suppl&eacute;mentaire</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                    Code Immo Congo : {{ logement.code_immo|default:"En cours de generation" }}
+                </p>
+                <p class="text-3xl font-extrabold text-success sm:text-4xl">{{ logement.prix }} {{ logement.devise }}</p>
+                <p class="mt-2 text-sm font-medium text-slate-500">{{ logement.prix_label }}</p>
+                <div id="detail-action-bar" class="mt-4 flex flex-wrap gap-3">
+                    <button
+                        id="detail-favorite-toggle"
+                        type="button"
+                        data-url="{% url 'annonces:toggle_favori' logement.id %}"
+                        data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+                        data-login-url="{% url 'annonces:login' %}?next={% url 'annonces:details' logement.id %}"
+                        class="favorite-toggle floating-glass inline-flex items-center gap-3 rounded-full border border-black/10 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5 {% if is_favorite %}is-active{% endif %}"
+                    >
+                        <i class="{% if is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                        <span>Favoris</span>
+                    </button>
+                    <button
+                        id="detail-share-button"
+                        type="button"
+                        class="floating-glass inline-flex items-center gap-3 rounded-full border border-black/10 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5"
+                    >
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <span>Partager</span>
+                    </button>
+                    <button
+                        id="detail-print-button"
+                        type="button"
+                        class="floating-glass inline-flex items-center gap-3 rounded-full border border-black/10 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5"
+                    >
+                        <i class="fa-regular fa-file-lines"></i>
+                        <span>Imprimer / PDF</span>
+                    </button>
+                    <button
+                        id="detail-compare-toggle"
+                        type="button"
+                        data-url="{% url 'annonces:toggle_compare' logement.id %}"
+                        class="inline-flex items-center gap-3 rounded-full border border-black/10 px-4 py-3 text-sm font-semibold transition hover:-translate-y-0.5 {% if is_compared %}bg-slate-900 text-white{% else %}bg-white text-slate-800{% endif %}"
+                    >
+                        <i class="fa-solid fa-code-compare"></i>
+                        <span>Comparer</span>
+                    </button>
+                </div>
+                <p class="mt-2 text-sm font-semibold text-primary">{{ logement.offre_label }}</p>
+                <div class="mt-3 flex flex-wrap items-center gap-3">
+                    <p class="text-base font-medium text-slate-700 sm:text-lg">{{ logement.commune }}, {{ logement.ville_affichee }}</p>
+                    <span class="rounded-[999px] bg-gradient-to-r from-orange-500 to-orange-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-orange-500/30">
+                        {% if logement.type_transaction == "LOCATION" %}Location{% else %}Vente{% endif %}
+                    </span>
+                    {% if logement.statut == "APPROUVEE" %}
+                        <span class="verified-pulse inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            Annonce v&eacute;rifi&eacute;e
+                        </span>
+                    {% elif logement.statut == "LOUE" %}
+                        <span class="rounded-full bg-slate-300 px-4 py-2 text-sm font-bold text-slate-800 shadow">D&eacute;j&agrave; lou&eacute;</span>
+                    {% elif logement.statut == "VENDU" %}
+                        <span class="rounded-full bg-slate-300 px-4 py-2 text-sm font-bold text-slate-800 shadow">D&eacute;j&agrave; vendu</span>
+                    {% endif %}
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                    {% if logement.adresse %}
+                        <p class="inline-flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-primary"></i>
+                            <span>{{ logement.adresse }}</span>
+                        </p>
+                    {% endif %}
+                    <p class="inline-flex items-center gap-2">
+                        <i class="fa-regular fa-clock text-primary"></i>
+                        <span>{{ logement.created_at|naturaltime }}</span>
+                    </p>
+                </div>
+                {% if logement.statut == "LOUE" or logement.statut == "VENDU" %}
+                    <div class="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-600">
+                        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                        Succ&egrave;s Immo Congo
+                    </div>
+                {% endif %}
+                <p class="mt-4 text-sm leading-7 text-slate-600">{{ logement.description }}</p>
+                {% if logement.proprietaire %}
+                    <div class="mt-5 flex flex-wrap gap-3">
+                        <a href="{% url 'annonces:proprietaire_profile' logement.proprietaire.id %}" class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary">
+                            <i class="fa-solid fa-building-user"></i>
+                            <span>Voir le profil du propriétaire</span>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900">Preuve vid&eacute;o</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-500">Vid&eacute;o certifi&eacute;e par Immo Congo pour &eacute;viter les frais de visite inutiles.</p>
+                {% if logement.is_public_status and logement.video_preuve %}
+                    <video controls preload="none" class="mt-4 w-full rounded-[1.5rem] bg-slate-950">
+                        <source src="{{ logement.video_preuve.url }}">
+                        Votre navigateur ne supporte pas la lecture vid&eacute;o.
+                    </video>
+                {% elif not logement.is_public_status %}
+                    <p class="mt-4 text-sm text-slate-500">La vid&eacute;o sera disponible apr&egrave;s validation manuelle par Immo Congo.</p>
+                {% else %}
+                    <p class="mt-4 text-sm text-slate-500">Aucune vid&eacute;o de preuve disponible.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <aside class="space-y-5">
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900">Pourquoi cette annonce inspire confiance</h2>
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div class="rounded-[1.5rem] bg-slate-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Photos</p>
+                        <p class="mt-2 text-lg font-black text-slate-900">{{ trust_signals.photos_count }}</p>
+                        <p class="text-xs text-slate-500">visuels disponibles</p>
+                    </div>
+                    <div class="rounded-[1.5rem] bg-slate-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Vidéo</p>
+                        <p class="mt-2 text-sm font-bold text-slate-900">
+                            {% if trust_signals.has_video %}Disponible{% else %}Non fournie{% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500">preuve de visite</p>
+                    </div>
+                    <div class="rounded-[1.5rem] bg-slate-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Repère</p>
+                        <p class="mt-2 text-sm font-bold text-slate-900">
+                            {% if trust_signals.has_landmark %}Précis{% else %}À compléter{% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500">localisation pratique</p>
+                    </div>
+                    <div class="rounded-[1.5rem] bg-slate-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary">GPS</p>
+                        <p class="mt-2 text-sm font-bold text-slate-900">
+                            {% if trust_signals.has_gps %}Disponible{% else %}Indisponible{% endif %}
+                        </p>
+                        <p class="text-xs text-slate-500">coordonnées du bien</p>
+                    </div>
+                </div>
+                {% if logement.verified_by %}
+                    <div class="mt-4 rounded-[1.5rem] bg-emerald-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Validation</p>
+                        <p class="mt-2 text-sm font-semibold text-emerald-900">
+                            V&eacute;rifi&eacute;e par {{ logement.verified_by.get_full_name|default:logement.verified_by.username }}
+                        </p>
+                        {% if logement.approved_at %}
+                            <p class="mt-1 text-xs text-emerald-700">Le {{ logement.approved_at|date:"d/m/Y à H:i" }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                <div class="mt-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Score de confiance</p>
+                        <p class="text-sm font-bold {% if trust_score.tone == 'emerald' %}text-emerald-700{% elif trust_score.tone == 'blue' %}text-primary{% elif trust_score.tone == 'amber' %}text-amber-700{% else %}text-slate-700{% endif %}">
+                            {{ trust_score.label }} - {{ trust_score.value }}%
+                        </p>
+                    </div>
+                    <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                        <div class="h-full rounded-full {% if trust_score.tone == 'emerald' %}bg-emerald-500{% elif trust_score.tone == 'blue' %}bg-primary{% elif trust_score.tone == 'amber' %}bg-amber-400{% else %}bg-slate-500{% endif %}" style="width: {{ trust_score.value }}%"></div>
+                    </div>
+                    {% if trust_score.reasons %}
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            {% for reason in trust_score.reasons %}
+                                <span class="rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-700">{{ reason }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900">&Eacute;quipements</h2>
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div class="rounded-[1.5rem] {% if logement.eau_regideso %}bg-emerald-50{% else %}bg-slate-100{% endif %} p-4">
+                        <p class="text-sm font-black uppercase tracking-[0.24em] text-primary">H2O</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900">Eau</p>
+                        <p class="text-xs text-slate-500">{% if logement.eau_regideso %}Disponible{% else %}Indisponible{% endif %}</p>
+                    </div>
+                    <div class="rounded-[1.5rem] {% if logement.elec_snel %}bg-amber-50{% else %}bg-slate-100{% endif %} p-4">
+                        <p class="text-sm font-black uppercase tracking-[0.24em] text-primary">ELEC</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900">&Eacute;lectricit&eacute;</p>
+                        <p class="text-xs text-slate-500">{% if logement.elec_snel %}Disponible{% else %}Indisponible{% endif %}</p>
+                    </div>
+                    <div class="rounded-[1.5rem] {% if logement.sentinelle %}bg-blue-50{% else %}bg-slate-100{% endif %} p-4">
+                        <p class="text-sm font-black uppercase tracking-[0.24em] text-primary">SECU</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900">Sentinelle</p>
+                        <p class="text-xs text-slate-500">{% if logement.sentinelle %}Disponible{% else %}Indisponible{% endif %}</p>
+                    </div>
+                    <div class="rounded-[1.5rem] {% if logement.parking %}bg-slate-200{% else %}bg-slate-100{% endif %} p-4">
+                        <p class="text-sm font-black uppercase tracking-[0.24em] text-primary">PARK</p>
+                        <p class="mt-2 text-sm font-semibold text-slate-900">Parking</p>
+                        <p class="text-xs text-slate-500">{% if logement.parking %}Disponible{% else %}Indisponible{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900">Localisation GPS</h2>
+                {% if logement.point_repere %}
+                    <div class="mt-4 rounded-[1.5rem] bg-blue-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Point de rep&egrave;re</p>
+                        <p class="mt-2 text-sm text-slate-700">{{ logement.point_repere }}</p>
+                    </div>
+                {% endif %}
+                {% if logement.gps_lat and logement.gps_long %}
+                    <div
+                        id="detail-map"
+                        data-lat="{{ logement.gps_lat }}"
+                        data-lng="{{ logement.gps_long }}"
+                        class="detail-map mt-4 border border-slate-200"
+                    ></div>
+                    <div class="mt-4 rounded-[1.5rem] bg-slate-100 p-4">
+                        <p class="text-sm text-slate-600">Latitude : {{ logement.gps_lat }}</p>
+                        <p class="text-sm text-slate-600">Longitude : {{ logement.gps_long }}</p>
+                    </div>
+                    <a href="https://www.google.com/maps?q={{ logement.gps_lat }},{{ logement.gps_long }}" target="_blank" rel="noreferrer" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white">
+                        Ouvrir la carte
+                    </a>
+                {% else %}
+                    <p class="mt-4 text-sm text-slate-500">Coordonn&eacute;es GPS indisponibles.</p>
+                {% endif %}
+            </div>
+
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900">Contact</h2>
+                {% if logement.statut == "LOUE" %}
+                    <span class="mt-4 inline-flex rounded-full bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">D&eacute;j&agrave; lou&eacute;</span>
+                {% elif logement.statut == "VENDU" %}
+                    <span class="mt-4 inline-flex rounded-full bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-700">D&eacute;j&agrave; vendu</span>
+                {% elif logement.statut != "APPROUVEE" %}
+                    <p class="mt-4 text-sm text-slate-500">Le num&eacute;ro du propri&eacute;taire sera visible uniquement apr&egrave;s validation manuelle de l'annonce.</p>
+                {% elif not user.is_authenticated %}
+                    <a href="{% url 'annonces:login' %}?next={% url 'annonces:details' logement.id %}" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white">
+                        Voir le num&eacute;ro du propri&eacute;taire
+                    </a>
+                {% elif is_unlocked %}
+                    <div class="mt-4 rounded-[1.5rem] bg-emerald-50 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Num&eacute;ro du propri&eacute;taire</p>
+                        <p class="mt-2 text-lg font-bold text-emerald-800">{{ logement.telephone_proprio|default:logement.contact_proprietaire|default:"Num&eacute;ro non renseign&eacute;" }}</p>
+                    </div>
+                    <a href="tel:{{ logement.telephone_proprio|default:logement.contact_proprietaire }}" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">
+                        Appeler
+                    </a>
+                {% else %}
+                    <form method="post" action="{% url 'annonces:unlock_contact' logement.id %}" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-white">
+                            Voir le num&eacute;ro du propri&eacute;taire
+                        </button>
+                    </form>
+                    <p class="mt-3 text-xs leading-5 text-slate-500">Ce bouton simule une action de paiement avant affichage du contact.</p>
+                {% endif %}
+                {% if user.is_authenticated and logement.proprietaire and user != logement.proprietaire %}
+                    <div class="mt-5 border-t border-slate-200 pt-5">
+                        <p class="text-sm font-semibold text-slate-900">Poser une question au propriétaire</p>
+                        <form method="post" action="{% url 'annonces:contact_owner_message' logement.id %}" class="mt-3 space-y-3">
+                            {% csrf_token %}
+                            <textarea name="message" rows="3" class="w-full rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white" placeholder="Ex. : Le bien est-il encore disponible ?"></textarea>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="submit" class="inline-flex rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95">
+                                    Envoyer un message
+                                </button>
+                                <a href="{% url 'annonces:conversation' logement.id logement.proprietaire.id %}" class="inline-flex rounded-full border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary">
+                                    Ouvrir la conversation
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-xl font-bold text-slate-900">Signalement</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-500">
+                    Signalez une annonce douteuse pour aider l'&eacute;quipe Immo Congo &agrave; intervenir rapidement.
+                </p>
+                {% if user.is_authenticated %}
+                    {% if has_signaled %}
+                        <div class="mt-4 rounded-[1.5rem] bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+                            Vous avez d&eacute;j&agrave; signal&eacute; cette annonce. Merci pour votre vigilance.
+                        </div>
+                    {% else %}
+                        <button id="signalement-toggle" type="button" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                            Signaler cette annonce
+                        </button>
+                        <form id="signalement-panel" method="post" action="{% url 'annonces:signaler_annonce' logement.id %}" class="mt-4 hidden space-y-3 rounded-[1.5rem] border border-red-100 bg-red-50 p-4">
+                            {% csrf_token %}
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ signalement_form.motif.id_for_label }}">{{ signalement_form.motif.label }}</label>
+                                {{ signalement_form.motif }}
+                            </div>
+                            <div>
+                                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ signalement_form.commentaire.id_for_label }}">{{ signalement_form.commentaire.label }}</label>
+                                {{ signalement_form.commentaire }}
+                            </div>
+                            <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white">
+                                Envoyer le signalement
+                            </button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'annonces:login' %}?next={% url 'annonces:details' logement.id %}" class="mt-4 inline-flex w-full items-center justify-center rounded-2xl border border-primary px-4 py-3 text-sm font-semibold text-primary">
+                        Connectez-vous pour signaler cette annonce
+                    </a>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+</section>
+
+{% if similar_logements %}
+<section class="mx-auto max-w-6xl px-4 pb-10 sm:px-6 md:px-8">
+    <div class="flex items-end justify-between gap-4">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-primary/70">A voir aussi</p>
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">Biens similaires</h2>
+        </div>
+        <a href="{% url 'annonces:home' %}" class="hidden text-sm font-semibold text-primary md:inline-flex">Voir plus d'annonces</a>
+    </div>
+    <div class="mt-6 grid gap-5 md:grid-cols-3">
+        {% for similar in similar_logements %}
+            <article class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
+                <div class="relative">
+                    {% if similar.main_photo %}
+                        <img src="{{ similar.main_photo.image.url }}" alt="Photo de {{ similar.commune }}" class="h-56 w-full object-cover">
+                    {% else %}
+                        <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-56 w-full object-cover">
+                    {% endif %}
+                    <span class="absolute left-4 top-4 rounded-[999px] bg-gradient-to-r from-orange-500 to-orange-400 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-500/30">
+                        {{ similar.offre_label }}
+                    </span>
+                    {% if similar.statut == "APPROUVEE" %}
+                        <span class="absolute left-4 bottom-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            Annonce v&eacute;rifi&eacute;e
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="space-y-3 p-5">
+                    <div>
+                        <p class="text-xl font-bold text-success">{{ similar.prix }} {{ similar.devise }}</p>
+                        <p class="mt-1 text-sm font-medium text-slate-500">{{ similar.prix_label }}</p>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-800">{{ similar.commune }}, {{ similar.ville_affichee }}</p>
+                    <p class="line-clamp-3 text-sm leading-6 text-slate-600">{{ similar.description }}</p>
+                    <a href="{% url 'annonces:details' similar.id %}" class="inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95">
+                        Voir les d&eacute;tails
+                    </a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<div id="gallery-lightbox" class="lightbox-backdrop fixed inset-0 z-[80] hidden p-4 sm:p-8">
+    <button
+        id="gallery-lightbox-close"
+        type="button"
+        class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-xl text-white backdrop-blur"
+        aria-label="Fermer l'image"
+    >
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="flex h-full items-center justify-center">
+        <img
+            id="gallery-lightbox-image"
+            src=""
+            alt=""
+            class="max-h-full max-w-full rounded-[1.75rem] object-contain shadow-2xl"
+        >
+    </div>
+</div>
+{% endblock %}

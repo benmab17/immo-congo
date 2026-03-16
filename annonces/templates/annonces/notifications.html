@@ -1,0 +1,61 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Notifications | Immo Congo{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+    <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.28em] text-primary/70">Centre de notifications</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">Vos alertes Immo Congo</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Retrouvez ici les nouveaux biens mis en ligne, les retours de modération et les échanges liés à vos annonces.
+            </p>
+        </div>
+        <a href="{% url 'annonces:home' %}" class="inline-flex items-center justify-center rounded-full border border-primary px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white">
+            Revenir à l'accueil
+        </a>
+    </div>
+
+    {% if notifications %}
+        <div class="space-y-4">
+            {% for notification in notifications %}
+                <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-lg text-primary">&#128276;</span>
+                                <div>
+                                    <h2 class="text-base font-semibold text-slate-900">{{ notification.titre }}</h2>
+                                    <p class="text-xs uppercase tracking-[0.24em] text-slate-400">{{ notification.created_at|date:"d/m/Y à H:i" }}</p>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-sm leading-6 text-slate-600">{{ notification.message }}</p>
+                            {% if notification.logement %}
+                                <div class="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                    <span class="font-semibold text-slate-800">{{ notification.logement.offre_label }}</span>
+                                    <span class="mx-2 text-slate-300">•</span>
+                                    <span>{{ notification.logement.ville_affichee }}, {{ notification.logement.commune }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if notification.lien %}
+                            <a href="{{ notification.lien }}" class="inline-flex shrink-0 items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/90">
+                                Ouvrir
+                            </a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white/80 px-6 py-14 text-center shadow-soft">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 text-3xl text-primary">&#128276;</div>
+            <h2 class="mt-5 text-2xl font-semibold tracking-tight text-slate-900">Aucune notification pour le moment</h2>
+            <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+                Dès qu'une annonce est validée, qu'un modérateur vous écrit ou qu'un nouveau bien arrive en ligne, vous le verrez ici.
+            </p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

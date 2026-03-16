@@ -1,0 +1,49 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Offres premium | Immo Congo{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 md:py-12">
+    <div class="text-center">
+        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-primary/70">Premium</p>
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">Des options pour vendre ou louer plus vite</h1>
+        <p class="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
+            Les offres premium servent &agrave; donner plus de visibilit&eacute; aux annonces importantes, sans compliquer la publication de base.
+        </p>
+    </div>
+
+    <div class="mt-8 grid gap-6 md:grid-cols-3">
+        <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-primary/70">Boost</p>
+            <h2 class="mt-2 text-2xl font-bold text-slate-900">Annonce mise en avant</h2>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Id&eacute;ale pour remonter un bien important dans les r&eacute;sultats et capter plus vite l'attention.</p>
+        </article>
+        <article class="rounded-[2rem] border border-amber-300 bg-amber-50 p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-amber-700">Signature</p>
+            <h2 class="mt-2 text-2xl font-bold text-slate-900">Badge premium</h2>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Habillage sp&eacute;cial, meilleure pr&eacute;sence visuelle et mise en avant des atouts du bien.</p>
+        </article>
+        <article class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.22em] text-primary/70">Pro</p>
+            <h2 class="mt-2 text-2xl font-bold text-slate-900">Pack visibilit&eacute;</h2>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Pens&eacute; pour les portefeuilles plus larges et les campagnes de publication plus ambitieuses.</p>
+        </article>
+    </div>
+
+    <div class="mt-8 rounded-[2rem] bg-primary p-6 text-white shadow-soft md:p-8">
+        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">Suite logique</p>
+        <h2 class="mt-2 text-2xl font-bold">Pr&ecirc;t &agrave; transformer ces options en vraie offre commerciale</h2>
+        <p class="mt-3 max-w-3xl text-sm leading-7 text-white/85">
+            Cette page pose la base marketing. Elle peut ensuite &ecirc;tre branch&eacute;e &agrave; un paiement, &agrave; une priorisation r&eacute;elle dans les cartes et &agrave; un parcours pro plus avanc&eacute;.
+        </p>
+        <div class="mt-5 flex flex-wrap gap-3">
+            <a href="{% url 'annonces:pricing' %}" class="inline-flex rounded-full bg-white px-4 py-3 text-sm font-semibold text-primary transition hover:-translate-y-0.5">
+                Voir les tarifs
+            </a>
+            <a href="{% url 'annonces:contact' %}" class="inline-flex rounded-full border border-white/30 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                Parler &agrave; l'&eacute;quipe
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

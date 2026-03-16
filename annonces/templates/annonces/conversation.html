@@ -1,0 +1,38 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Conversation | Immo Congo{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl px-4 py-8 sm:px-6 md:px-8 md:py-12">
+    <div class="rounded-[2rem] border border-slate-200 bg-white shadow-soft">
+        <div class="border-b border-slate-200 px-6 py-5">
+            <p class="text-sm font-semibold text-primary">{{ logement.offre_label }}</p>
+            <h1 class="mt-1 text-2xl font-bold text-slate-900">{{ logement.commune }}, {{ logement.ville_affichee }}</h1>
+            <p class="mt-1 text-sm text-slate-500">Conversation avec {{ other_user.get_full_name|default:other_user.username }}</p>
+        </div>
+        <div class="space-y-3 px-6 py-6">
+            {% for item in messages_thread %}
+                <div class="flex {% if item.sender == user %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="max-w-[80%] rounded-[1.5rem] px-4 py-3 {% if item.sender == user %}bg-primary text-white{% else %}bg-slate-100 text-slate-800{% endif %}">
+                        <p class="text-sm leading-6">{{ item.message }}</p>
+                        <p class="mt-2 text-[11px] {% if item.sender == user %}text-white/75{% else %}text-slate-500{% endif %}">
+                            {{ item.created_at|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-sm text-slate-500">Aucun message pour le moment.</p>
+            {% endfor %}
+        </div>
+        <form method="post" class="border-t border-slate-200 px-6 py-5">
+            {% csrf_token %}
+            <div class="space-y-3">
+                <textarea name="message" rows="4" class="w-full rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white" placeholder="Écrivez votre message..."></textarea>
+                <button type="submit" class="inline-flex rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95">
+                    Envoyer
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

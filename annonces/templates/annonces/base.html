@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Immo Congo{% endblock %}</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#003399",
+                        cream: "#f8f7f2",
+                        success: "#1f8f47",
+                    },
+                    fontFamily: {
+                        sans: ["ui-sans-serif", "system-ui", "Segoe UI", "sans-serif"],
+                    },
+                    boxShadow: {
+                        soft: "0 20px 45px rgba(0, 29, 89, 0.10)",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .page-shell {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .js .page-shell {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .js .page-shell.page-ready {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .js .page-shell.page-leaving {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .top-progress {
+            transform-origin: left center;
+            transform: scaleX(0);
+            transition: transform 0.22s ease, opacity 0.22s ease;
+            opacity: 0;
+        }
+
+        .top-progress.is-active {
+            opacity: 1;
+        }
+
+        .ripple-host {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple-wave {
+            position: absolute;
+            border-radius: 9999px;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(255, 255, 255, 0.28);
+            animation: ripple-wave 0.6s ease-out forwards;
+        }
+
+        @keyframes ripple-wave {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-cream font-sans text-slate-900">
+    <div id="top-progress-bar" class="top-progress fixed left-0 top-0 z-[90] h-1 w-full bg-primary"></div>
+    <div id="page-shell" class="page-shell min-h-screen pb-24 md:pb-0">
+        <header class="hidden border-b border-slate-200 bg-white/95 backdrop-blur md:sticky md:top-0 md:z-40 md:block">
+            <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+                <a href="{% url 'annonces:home' %}" class="flex items-center gap-3">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-white shadow-soft">IC</div>
+                    <div>
+                        <p class="text-lg font-semibold tracking-tight text-primary">Immo Congo</p>
+                        <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Annonces v&eacute;rifi&eacute;es</p>
+                    </div>
+                </a>
+                <nav class="flex items-center gap-8 text-sm font-medium text-slate-700">
+                    <a href="{% url 'annonces:home' %}" class="transition hover:text-primary">Accueil</a>
+                    <a href="#recherche" class="transition hover:text-primary">Rechercher</a>
+                    <a href="{% url 'annonces:create_logement' %}" class="transition hover:text-primary">Publier</a>
+                    <a href="{% url 'annonces:compare' %}" class="relative transition hover:text-primary">
+                        Comparer
+                        {% if compare_count %}
+                            <span class="absolute -right-4 -top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                {{ compare_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'annonces:notifications' %}" class="relative transition hover:text-primary">
+                            Notifications
+                            {% if unread_notifications_count %}
+                                <span class="absolute -right-4 -top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                    {{ unread_notifications_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        {% if user.is_staff %}
+                            <a href="{% url 'annonces:gestion_admin' %}" class="inline-flex items-center gap-2 transition hover:text-primary">
+                                <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                                <span>Gestion Admin</span>
+                            </a>
+                        {% endif %}
+                        <details class="group relative">
+                            <summary class="flex cursor-pointer list-none items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                                    {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                </span>
+                                <span>{{ user.first_name|default:user.username }}</span>
+                                <span class="text-xs text-slate-400">&#9662;</span>
+                            </summary>
+                            <div class="absolute right-0 top-14 z-50 w-64 rounded-3xl border border-slate-200 bg-white p-3 shadow-soft">
+                                <div class="border-b border-slate-100 px-3 pb-3">
+                                    <p class="text-sm font-semibold text-slate-900">{{ user.get_full_name|default:user.username }}</p>
+                                    <p class="text-xs text-slate-500">{{ user.username }}</p>
+                                </div>
+                                <div class="mt-2 space-y-1">
+                                    <a href="{% url 'annonces:mon_profil' %}" class="block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-primary">Mon profil</a>
+                                    <a href="{% url 'annonces:mes_annonces' %}" class="block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-primary">Mes annonces</a>
+                                    <a href="{% url 'annonces:mes_favoris' %}" class="block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-primary">Mes favoris</a>
+                                    <a href="{% url 'annonces:messagerie' %}" class="block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-primary">
+                                        Messages{% if unread_messages_count %} ({{ unread_messages_count }}){% endif %}
+                                    </a>
+                                    <a href="{% url 'annonces:compare' %}" class="block rounded-2xl px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 hover:text-primary">
+                                        Comparer{% if compare_count %} ({{ compare_count }}){% endif %}
+                                    </a>
+                                    <a href="{% url 'annonces:logout' %}" class="block rounded-2xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50">D&eacute;connexion</a>
+                                </div>
+                            </div>
+                        </details>
+                    {% else %}
+                        <a href="{% url 'annonces:login' %}" class="rounded-full border border-primary px-4 py-2 text-primary transition hover:bg-primary hover:text-white">Connexion</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            {% if messages %}
+                <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 md:px-8">
+                    {% for message in messages %}
+                        <div class="mb-3 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+
+        <a href="{% url 'annonces:create_logement' %}" class="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-3xl text-white shadow-soft md:hidden" aria-label="Publier une annonce">
+            +
+        </a>
+
+        <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-3 py-2 backdrop-blur md:hidden">
+            <div class="mx-auto grid max-w-lg {% if user.is_staff %}grid-cols-5{% else %}grid-cols-4{% endif %} gap-2">
+                <a href="{% url 'annonces:home' %}" class="flex flex-col items-center rounded-2xl px-2 py-2 text-xs font-medium text-primary">
+                    <span class="text-lg">&#8962;</span>
+                    <span>Accueil</span>
+                </a>
+                <a href="#recherche" class="flex flex-col items-center rounded-2xl px-2 py-2 text-xs font-medium text-slate-600">
+                    <span class="text-lg">&#8981;</span>
+                    <span>Recherche</span>
+                </a>
+                <a href="{% url 'annonces:create_logement' %}" class="flex flex-col items-center rounded-2xl px-2 py-2 text-xs font-medium text-slate-600">
+                    <span class="text-lg">+</span>
+                    <span>Publier</span>
+                </a>
+                {% if user.is_staff %}
+                    <a href="{% url 'annonces:gestion_admin' %}" class="flex flex-col items-center rounded-2xl px-2 py-2 text-xs font-medium text-slate-600">
+                        <span class="text-lg"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span>
+                        <span>Admin</span>
+                    </a>
+                {% endif %}
+                <a href="{% if user.is_authenticated %}{% url 'annonces:mon_profil' %}{% else %}{% url 'annonces:login' %}{% endif %}" class="relative flex flex-col items-center rounded-2xl px-2 py-2 text-xs font-medium text-slate-600">
+                    <span class="text-lg">&#9673;</span>
+                    {% if unread_notifications_count %}
+                        <span class="absolute right-4 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                            {{ unread_notifications_count }}
+                        </span>
+                    {% endif %}
+                    <span>Profil</span>
+                </a>
+            </div>
+        </nav>
+
+        <footer class="border-t border-slate-200 bg-white/95">
+            <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:px-8">
+                <div class="grid gap-8 md:grid-cols-[1.3fr,0.9fr,0.9fr,1fr]">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-white shadow-soft">IC</div>
+                            <div>
+                                <p class="text-lg font-semibold tracking-tight text-primary">Immo Congo</p>
+                                <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Confiance immobili&egrave;re</p>
+                            </div>
+                        </div>
+                        <p class="mt-4 max-w-sm text-sm leading-6 text-slate-600">
+                            Annonces relues manuellement, vid&eacute;os de preuve, alertes communautaires et mod&eacute;ration active pour &eacute;viter les pertes de temps.
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-[0.22em] text-slate-900">Immo Congo</h3>
+                        <div class="mt-4 space-y-3 text-sm text-slate-600">
+                            <a href="{% url 'annonces:about' %}" class="block transition hover:text-primary">&Agrave; propos</a>
+                            <a href="{% url 'annonces:agencies' %}" class="block transition hover:text-primary">Agences &amp; professionnels</a>
+                            <a href="{% url 'annonces:contact' %}" class="block transition hover:text-primary">Contact</a>
+                            <a href="{% url 'annonces:help_center' %}" class="block transition hover:text-primary">Centre d'aide</a>
+                            <a href="{% url 'annonces:premium' %}" class="block transition hover:text-primary">Offres premium</a>
+                            <a href="{% url 'annonces:pricing' %}" class="block transition hover:text-primary">Tarifs</a>
+                            <a href="{% url 'annonces:safety' %}" class="block transition hover:text-primary">&Eacute;viter les arnaques</a>
+                            <a href="{% url 'annonces:terms' %}" class="block transition hover:text-primary">Conditions d'utilisation</a>
+                            <a href="{% url 'annonces:privacy' %}" class="block transition hover:text-primary">Politique de confidentialit&eacute;</a>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-[0.22em] text-slate-900">Acc&egrave;s rapide</h3>
+                        <div class="mt-4 space-y-3 text-sm text-slate-600">
+                            <a href="{% url 'annonces:home' %}" class="block transition hover:text-primary">Accueil</a>
+                            <a href="{% url 'annonces:create_logement' %}" class="block transition hover:text-primary">Publier une annonce</a>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'annonces:mes_annonces' %}" class="block transition hover:text-primary">Mes annonces</a>
+                                <a href="{% url 'annonces:notifications' %}" class="relative block transition hover:text-primary">
+                                    Notifications
+                                    {% if unread_notifications_count %}
+                                        <span class="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                            {{ unread_notifications_count }}
+                                        </span>
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-[0.22em] text-slate-900">Contact</h3>
+                        <div class="mt-4 space-y-3 text-sm text-slate-600">
+                            <a href="mailto:support@immocongo.cd" class="block transition hover:text-primary">support@immocongo.cd</a>
+                            <a href="tel:+243826812487" class="block transition hover:text-primary">+243 826812487</a>
+                            <p>Kinshasa, RDC</p>
+                            {% if can_access_moderation %}
+                                <a href="{% url 'annonces:gestion_admin' %}" class="inline-flex text-xs font-semibold uppercase tracking-[0.2em] text-primary/80 hover:text-primary">
+                                    Espace mod&eacute;rateur
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-5 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+                    <p>Immo Congo. V&eacute;rification manuelle des annonces et protection active contre les fraudes.</p>
+                    <p>2026 Immo Congo. Tous droits r&eacute;serv&eacute;s.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script>
+        (function () {
+            const pageShell = document.getElementById("page-shell");
+            const topProgressBar = document.getElementById("top-progress-bar");
+            let audioContext;
+
+            const setTopProgress = (active, value = 0.72) => {
+                if (!topProgressBar) return;
+                topProgressBar.classList.toggle("is-active", active);
+                topProgressBar.style.transform = `scaleX(${active ? value : 0})`;
+            };
+
+            window.immoSetTopProgress = setTopProgress;
+
+            window.immoPulseFeedback = function () {
+                if (navigator.vibrate) {
+                    navigator.vibrate(10);
+                }
+                try {
+                    const Context = window.AudioContext || window.webkitAudioContext;
+                    if (!Context) return;
+                    audioContext = audioContext || new Context();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.type = "sine";
+                    oscillator.frequency.value = 520;
+                    gainNode.gain.value = 0.0001;
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.start();
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.12);
+                    oscillator.stop(audioContext.currentTime + 0.13);
+                } catch (error) {
+                }
+            };
+
+            document.addEventListener("DOMContentLoaded", () => {
+                requestAnimationFrame(() => pageShell && pageShell.classList.add("page-ready"));
+                document.querySelectorAll("a[href]").forEach((link) => {
+                    if (link.target === "_blank" || link.hasAttribute("download")) return;
+                    const href = link.getAttribute("href") || "";
+                    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+                    link.addEventListener("click", (event) => {
+                        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                        if (pageShell) pageShell.classList.add("page-leaving");
+                        setTopProgress(true, 0.88);
+                    });
+                });
+
+                document.querySelectorAll(".primary-action, button[type='submit'], .search-cta").forEach((element) => {
+                    element.classList.add("ripple-host");
+                    element.addEventListener("click", (event) => {
+                        const rect = element.getBoundingClientRect();
+                        const wave = document.createElement("span");
+                        const size = Math.max(rect.width, rect.height) * 1.3;
+                        wave.className = "ripple-wave";
+                        wave.style.width = `${size}px`;
+                        wave.style.height = `${size}px`;
+                        wave.style.left = `${event.clientX - rect.left}px`;
+                        wave.style.top = `${event.clientY - rect.top}px`;
+                        element.appendChild(wave);
+                        setTimeout(() => wave.remove(), 650);
+                    });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

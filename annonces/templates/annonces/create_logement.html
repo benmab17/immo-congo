@@ -1,0 +1,658 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Publier | Immo Congo{% endblock %}
+
+{% block extra_head %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const cityCommuneMap = JSON.parse('{{ ville_communes_map_json|escapejs }}');
+        const villeSelect = document.getElementById("id_ville");
+        const villeAutreInput = document.getElementById("id_ville_autre");
+        const villeAutreButton = document.getElementById("ville-autre-button");
+        const villeAutreWrapper = document.getElementById("ville-autre-wrapper");
+        const communeInput = document.getElementById("id_commune");
+        const communeHint = document.getElementById("commune-hint");
+        const communePanel = document.getElementById("commune-panel");
+        const communeTrigger = document.getElementById("commune-trigger");
+        const communeSearch = document.getElementById("commune-search");
+        const communeList = document.getElementById("commune-options");
+        const communeLabel = document.getElementById("commune-label");
+        const communeEmpty = document.getElementById("commune-empty");
+        const typeSelect = document.getElementById("id_type_transaction");
+        const categorieSelect = document.getElementById("id_categorie_bien");
+        const prixLabel = document.getElementById("prix-label");
+        const prixHint = document.getElementById("prix-hint");
+        const descriptionInput = document.getElementById("id_description");
+        const descriptionToneButtons = document.querySelectorAll("[data-description-tone]");
+        const descriptionAssistButton = document.getElementById("description-assist-button");
+        const descriptionGuide = document.getElementById("description-guide");
+        const chambresInput = document.getElementById("id_nb_chambres");
+        const pointRepereInput = document.getElementById("id_point_repere");
+        const photosInput = document.getElementById("id_photos");
+        const previewGrid = document.getElementById("photos-preview");
+        const previewEmpty = document.getElementById("photos-preview-empty");
+        const previewCount = document.getElementById("photos-preview-count");
+        const previewProgressBar = document.getElementById("photos-progress-bar");
+        const previewProgressLabel = document.getElementById("photos-progress-label");
+        const previewProgressStatus = document.getElementById("photos-progress-status");
+        const photosError = document.getElementById("photos-client-error");
+        const publishForm = document.getElementById("publish-form");
+        const gpsLatInput = document.getElementById("id_gps_lat");
+        const gpsLongInput = document.getElementById("id_gps_long");
+        const geolocateButton = document.getElementById("geolocate-button");
+        const geolocateStatus = document.getElementById("geolocate-status");
+        const minPhotos = 5;
+        const maxPhotos = 10;
+        const existingPhotoCount = Number("{{ photo_form.existing_count|default:0 }}");
+        let communeOptions = [];
+        let communeOpen = false;
+        let selectedTone = "MODERNE";
+
+        const normalize = (value) => (value || "").trim();
+
+        const getSelectedCity = () => {
+            if (!villeSelect) return "";
+            if (villeSelect.value === "AUTRE") {
+                return normalize(villeAutreInput ? villeAutreInput.value : "");
+            }
+            return normalize(villeSelect.value);
+        };
+
+        const syncCommunes = () => {
+            if (!communeList || !communeInput) return;
+
+            const city = getSelectedCity();
+            communeOptions = cityCommuneMap[city] || [];
+            renderCommunes(communeSearch ? communeSearch.value : "");
+
+            if (communeHint) {
+                communeHint.textContent = communeOptions.length
+                    ? `Communes sugg\u00e9r\u00e9es pour ${city}. Vous pouvez aussi saisir une autre commune.`
+                    : "Saisissez la commune manuellement si elle n'appara\u00eet pas dans la liste.";
+            }
+        };
+
+        const setCommuneValue = (value) => {
+            communeInput.value = value;
+            communeLabel.textContent = value || "Choisissez ou saisissez une commune";
+        };
+
+        const renderCommunes = (query = "") => {
+            if (!communeList) return;
+
+            const normalizedQuery = normalize(query).toLowerCase();
+            const filtered = communeOptions.filter((item) => item.toLowerCase().includes(normalizedQuery));
+            communeList.innerHTML = "";
+
+            filtered.forEach((commune) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left text-sm transition hover:bg-slate-100";
+                button.innerHTML = `<span>${commune}</span>${communeInput.value === commune ? '<span class="text-primary">Choisi</span>' : ''}`;
+                button.addEventListener("click", () => {
+                    setCommuneValue(commune);
+                    closeCommunePanel();
+                });
+                communeList.appendChild(button);
+            });
+
+            if (communeEmpty) {
+                communeEmpty.classList.toggle("hidden", filtered.length > 0);
+            }
+        };
+
+        const openCommunePanel = () => {
+            if (!communePanel) return;
+            communeOpen = true;
+            communePanel.classList.remove("hidden");
+            communeTrigger.setAttribute("aria-expanded", "true");
+            renderCommunes(communeSearch.value);
+            setTimeout(() => communeSearch.focus(), 0);
+        };
+
+        const closeCommunePanel = () => {
+            if (!communePanel) return;
+            communeOpen = false;
+            communePanel.classList.add("hidden");
+            communeTrigger.setAttribute("aria-expanded", "false");
+        };
+
+        if (villeSelect && villeAutreInput && villeAutreButton && villeAutreWrapper) {
+            const toggleVilleAutre = (forceAutre = false) => {
+                const show = forceAutre || villeSelect.value === "AUTRE";
+                villeAutreWrapper.classList.toggle("hidden", !show);
+                if (show) {
+                    villeSelect.value = "AUTRE";
+                    villeAutreInput.focus();
+                } else {
+                    villeAutreInput.value = "";
+                }
+                syncCommunes();
+            };
+
+            toggleVilleAutre(villeSelect.value === "AUTRE" && villeAutreInput.value.trim() !== "");
+            villeSelect.addEventListener("change", () => toggleVilleAutre());
+            villeAutreButton.addEventListener("click", () => toggleVilleAutre(true));
+            villeAutreInput.addEventListener("input", syncCommunes);
+        }
+
+        if (communeTrigger && communePanel && communeSearch) {
+            communeTrigger.addEventListener("click", () => {
+                if (communeOpen) {
+                    closeCommunePanel();
+                } else {
+                    openCommunePanel();
+                }
+            });
+
+            communeSearch.addEventListener("input", () => renderCommunes(communeSearch.value));
+            communeInput.addEventListener("input", () => setCommuneValue(communeInput.value));
+
+            document.addEventListener("click", (event) => {
+                if (!document.getElementById("commune-combobox").contains(event.target)) {
+                    closeCommunePanel();
+                }
+            });
+        }
+
+        if (typeSelect && prixLabel && prixHint) {
+            const syncPrixLabel = () => {
+                const isLocation = typeSelect.value === "LOCATION";
+                prixLabel.textContent = isLocation ? "Prix par mois" : "Prix total";
+                prixHint.textContent = isLocation
+                    ? "Indiquez le loyer mensuel demand\u00e9."
+                    : "Indiquez le prix global de vente du bien.";
+            };
+
+            syncPrixLabel();
+            typeSelect.addEventListener("change", syncPrixLabel);
+        }
+
+        const buildDescriptionTemplate = (tone = "MODERNE") => {
+            if (!categorieSelect || !descriptionInput) return "";
+
+            const commune = normalize(communeInput ? communeInput.value : "") || "[Commune]";
+            const chambres = normalize(chambresInput ? chambresInput.value : "") || "[Nombre]";
+            const repere = normalize(pointRepereInput ? pointRepereInput.value : "") || "[Point de repere]";
+
+            const variants = {
+                MODERNE: `Superbe Appartement situé à ${commune}, idéal pour un cadre dynamique. Le bien offre un design épuré avec ${chambres} chambres spacieuses, un salon lumineux et une cuisine entièrement équipée. Proche de ${repere}, profitez d'un confort moderne avec sécurité assurée 24h/24.`,
+                FAMILIAL: `Charmante Maison située à ${commune}, parfaite pour une vie de famille épanouie. Elle dispose de ${chambres} chambres, d'un grand séjour convivial et d'une cuisine fonctionnelle. Située dans un quartier calme proche de ${repere}, avec un espace sécurisé pour les enfants.`,
+                LUXE: `Demeure d'exception située à ${commune}, offrant des prestations de très haut standing. Ce bien unique comprend ${chambres} suites parentales, de vastes espaces de réception et une cuisine de chef. Idéalement placée près de ${repere}, bénéficiez d'une intimité totale et d'une sécurité d'élite.`
+            };
+
+            return variants[tone] || variants.MODERNE;
+        };
+
+        const buildGuideMarkup = (tone = "MODERNE") => {
+            const template = buildDescriptionTemplate(tone);
+            if (!template || !descriptionGuide) {
+                if (descriptionGuide) descriptionGuide.innerHTML = "";
+                return;
+            }
+            descriptionGuide.innerHTML = template.replace(/\[([^\]]+)\]/g, '<strong class="rounded-full bg-blue-100 px-2 py-1 text-primary">[$1]</strong>');
+        };
+
+        const applyGeneratedDescription = (force = false) => {
+            const template = buildDescriptionTemplate(selectedTone);
+            if (!template || !descriptionInput) return;
+            if (!descriptionInput.value.trim() || force || descriptionInput.dataset.generated === "true") {
+                descriptionInput.value = template;
+                descriptionInput.dataset.generated = "true";
+            }
+            buildGuideMarkup(selectedTone);
+        };
+
+        if (descriptionInput) {
+            descriptionInput.addEventListener("input", () => {
+                descriptionInput.dataset.generated = "false";
+            });
+        }
+
+        if (categorieSelect) {
+            categorieSelect.addEventListener("change", () => {
+                applyGeneratedDescription(true);
+            });
+        }
+
+        [communeInput, chambresInput, pointRepereInput].forEach((field) => {
+            if (!field) return;
+            field.addEventListener("input", () => {
+                if (descriptionInput && descriptionInput.dataset.generated === "true") {
+                    applyGeneratedDescription(true);
+                } else {
+                    buildGuideMarkup(selectedTone);
+                }
+            });
+        });
+
+        if (descriptionAssistButton) {
+            descriptionAssistButton.addEventListener("click", () => {
+                applyGeneratedDescription(true);
+                if (descriptionInput) {
+                    descriptionInput.focus();
+                }
+            });
+        }
+
+        descriptionToneButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                selectedTone = button.dataset.descriptionTone || "MODERNE";
+                descriptionToneButtons.forEach((item) => {
+                    const active = item === button;
+                    item.classList.toggle("bg-primary", active);
+                    item.classList.toggle("text-white", active);
+                    item.classList.toggle("border-primary", active);
+                    item.classList.toggle("bg-white", !active);
+                    item.classList.toggle("text-slate-700", !active);
+                });
+                applyGeneratedDescription(true);
+            });
+        });
+
+        if (photosInput && previewGrid && previewEmpty) {
+            const validatePhotos = () => {
+                const selectedCount = Array.from(photosInput.files || []).length;
+                const totalCount = existingPhotoCount + selectedCount;
+                let message = "";
+
+                if (totalCount < minPhotos) {
+                    message = `Ajoutez au moins ${minPhotos} photos. Il en manque encore ${minPhotos - totalCount}.`;
+                } else if (selectedCount > maxPhotos || totalCount > maxPhotos) {
+                    message = `Vous pouvez enregistrer au maximum ${maxPhotos} photos pour ce bien.`;
+                }
+
+                if (photosError) {
+                    photosError.textContent = message;
+                    photosError.classList.toggle("hidden", !message);
+                }
+
+                if (message) {
+                    photosInput.setCustomValidity(message);
+                } else {
+                    photosInput.setCustomValidity("");
+                }
+
+                return !message;
+            };
+
+            const renderPhotoPreviews = () => {
+                previewGrid.innerHTML = "";
+                const files = Array.from(photosInput.files || []).slice(0, maxPhotos);
+                const totalCount = existingPhotoCount + files.length;
+                const progressPercent = Math.min((totalCount / maxPhotos) * 100, 100);
+                previewEmpty.classList.toggle("hidden", files.length > 0);
+                if (previewCount) {
+                    previewCount.textContent = `${totalCount}/${maxPhotos} photo(s) pr\u00eates pour ce bien`;
+                }
+                if (previewProgressBar) {
+                    previewProgressBar.style.width = `${progressPercent}%`;
+                    previewProgressBar.className = totalCount >= minPhotos
+                        ? "h-full rounded-full bg-emerald-500 transition-all duration-300"
+                        : "h-full rounded-full bg-primary transition-all duration-300";
+                }
+                if (previewProgressLabel) {
+                    previewProgressLabel.textContent = `${Math.round(progressPercent)}% du quota photo utilis\u00e9`;
+                }
+                if (previewProgressStatus) {
+                    if (totalCount < minPhotos) {
+                        previewProgressStatus.textContent = `Minimum requis : ${minPhotos} photos.`;
+                        previewProgressStatus.className = "text-xs font-semibold text-amber-600";
+                    } else {
+                        previewProgressStatus.textContent = "Minimum atteint, vous pouvez publier.";
+                        previewProgressStatus.className = "text-xs font-semibold text-emerald-600";
+                    }
+                }
+
+                files.forEach((file, index) => {
+                    const card = document.createElement("div");
+                    card.className = "overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white";
+
+                    const image = document.createElement("img");
+                    image.className = "h-28 w-full object-cover";
+                    image.alt = `Apercu photo ${index + 1}`;
+                    image.src = URL.createObjectURL(file);
+                    image.addEventListener("load", () => URL.revokeObjectURL(image.src), { once: true });
+
+                    const caption = document.createElement("div");
+                    caption.className = "px-3 py-2 text-xs text-slate-500";
+                    caption.textContent = file.name;
+
+                    card.appendChild(image);
+                    card.appendChild(caption);
+                    previewGrid.appendChild(card);
+                });
+
+                validatePhotos();
+            };
+
+            photosInput.addEventListener("change", renderPhotoPreviews);
+            renderPhotoPreviews();
+        }
+
+        if (publishForm && photosInput) {
+            publishForm.addEventListener("submit", (event) => {
+                const selectedCount = Array.from(photosInput.files || []).length;
+                const totalCount = existingPhotoCount + selectedCount;
+                if (totalCount < minPhotos || selectedCount > maxPhotos || totalCount > maxPhotos) {
+                    photosInput.reportValidity();
+                    event.preventDefault();
+                }
+            });
+        }
+
+        if (geolocateButton && gpsLatInput && gpsLongInput) {
+            geolocateButton.addEventListener("click", () => {
+                if (!navigator.geolocation) {
+                    geolocateStatus.textContent = "La geolocalisation n'est pas prise en charge sur cet appareil.";
+                    geolocateStatus.className = "text-xs text-red-600";
+                    return;
+                }
+
+                geolocateStatus.textContent = "Recuperation de votre position en cours...";
+                geolocateStatus.className = "text-xs text-slate-500";
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        gpsLatInput.value = position.coords.latitude;
+                        gpsLongInput.value = position.coords.longitude;
+                        geolocateStatus.textContent = "Position enregistree avec succes.";
+                        geolocateStatus.className = "text-xs text-emerald-600";
+                    },
+                    () => {
+                        geolocateStatus.textContent = "Impossible de recuperer votre position. Verifiez les autorisations du navigateur.";
+                        geolocateStatus.className = "text-xs text-red-600";
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+
+        setCommuneValue(communeInput.value);
+        syncCommunes();
+        buildGuideMarkup(selectedTone);
+    });
+</script>
+<style>
+    .field-shell select,
+    .field-shell input,
+    .field-shell textarea {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+    <div class="mb-4">
+        <button
+            type="button"
+            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{% url 'annonces:home' %}'; }"
+            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+        >
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Retour</span>
+        </button>
+    </div>
+    <div class="mb-6 grid gap-4 md:grid-cols-[1.2fr,0.8fr] md:items-end">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-primary/70">Publication</p>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">{% if is_edit %}Modifier une annonce{% else %}Publier une annonce{% endif %}</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                Renseignez les informations essentielles, ajoutez vos preuves et envoyez l'annonce en v&eacute;rification.
+            </p>
+        </div>
+        <div class="rounded-[1.75rem] border border-blue-100 bg-blue-50/80 p-4 text-sm text-slate-600">
+            <p class="font-semibold text-primary">Contr&ocirc;le qualit&eacute; Immo Congo</p>
+            <p class="mt-2">Le contact et la vid&eacute;o restent masqu&eacute;s jusqu'&agrave; validation manuelle de l'annonce.</p>
+        </div>
+    </div>
+
+    <form id="publish-form" method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft md:p-7">
+            <div class="mb-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-primary/70">&Eacute;tape 1</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">Localisation et transaction</h2>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="field-shell space-y-2">
+                    <div class="flex items-center justify-between gap-3">
+                        <label for="{{ form.ville.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.ville.label }}</label>
+                        <button id="ville-autre-button" type="button" class="text-xs font-semibold text-primary underline underline-offset-4">
+                            Autre
+                        </button>
+                    </div>
+                    {{ form.ville }}
+                    {% if form.ville.errors %}<p class="text-sm text-red-600">{{ form.ville.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div id="ville-autre-wrapper" class="field-shell space-y-2 {% if form.ville.value != 'AUTRE' %}hidden{% endif %}">
+                    <label for="{{ form.ville_autre.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.ville_autre.label }}</label>
+                    {{ form.ville_autre }}
+                    {% if form.ville_autre.errors %}<p class="text-sm text-red-600">{{ form.ville_autre.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.commune.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.commune.label }}</label>
+                    <div id="commune-combobox" class="relative">
+                        <button id="commune-trigger" type="button" aria-expanded="false" class="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 transition focus:border-primary focus:bg-white">
+                            <span id="commune-label">Choisissez ou saisissez une commune</span>
+                            <span class="text-slate-400">&#9662;</span>
+                        </button>
+                        <div id="commune-panel" class="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 hidden rounded-[1.5rem] border border-slate-200 bg-white p-3 shadow-soft">
+                            <input id="commune-search" type="text" placeholder="Rechercher une commune..." class="mb-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white">
+                            <div id="commune-options" class="max-h-56 space-y-1 overflow-y-auto"></div>
+                            <p id="commune-empty" class="hidden px-3 py-2 text-sm text-slate-500">Aucune commune sugg&eacute;r&eacute;e.</p>
+                        </div>
+                    </div>
+                    <input type="text" id="id_commune" name="commune" value="{{ form.commune.value|default:'' }}" placeholder="Saisissez une autre commune si besoin" class="mt-3 w-full rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-primary">
+                    <p id="commune-hint" class="text-xs text-slate-500">Choisissez d'abord une ville pour voir les communes sugg&eacute;r&eacute;es.</p>
+                    {% if form.commune.errors %}<p class="text-sm text-red-600">{{ form.commune.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.adresse.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.adresse.label }}</label>
+                    {{ form.adresse }}
+                    <p class="text-xs text-slate-500">Rue, num&eacute;ro et compl&eacute;ment utile pour situer le bien plus vite.</p>
+                    {% if form.adresse.errors %}<p class="text-sm text-red-600">{{ form.adresse.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2 md:col-span-2">
+                    <label for="{{ form.point_repere.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.point_repere.label }}</label>
+                    {{ form.point_repere }}
+                    <p class="text-xs text-slate-500">Si vous n'&ecirc;tes pas sur place, indiquez simplement un point de rep&egrave;re pr&eacute;cis ci-dessus.</p>
+                    {% if form.point_repere.errors %}<p class="text-sm text-red-600">{{ form.point_repere.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.categorie_bien.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.categorie_bien.label }}</label>
+                    {{ form.categorie_bien }}
+                    {% if form.categorie_bien.errors %}<p class="text-sm text-red-600">{{ form.categorie_bien.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.type_transaction.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.type_transaction.label }}</label>
+                    {{ form.type_transaction }}
+                    {% if form.type_transaction.errors %}<p class="text-sm text-red-600">{{ form.type_transaction.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label id="prix-label" for="{{ form.prix.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.prix.label }}</label>
+                    {{ form.prix }}
+                    <p id="prix-hint" class="text-xs text-slate-500"></p>
+                    {% if form.prix.errors %}<p class="text-sm text-red-600">{{ form.prix.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="field-shell space-y-2">
+                        <label for="{{ form.devise.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.devise.label }}</label>
+                        {{ form.devise }}
+                        {% if form.devise.errors %}<p class="text-sm text-red-600">{{ form.devise.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="field-shell space-y-2">
+                        <label for="{{ form.disponibilite.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.disponibilite.label }}</label>
+                        {{ form.disponibilite }}
+                        {% if form.disponibilite.errors %}<p class="text-sm text-red-600">{{ form.disponibilite.errors.0 }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft md:p-7">
+            <div class="mb-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-primary/70">&Eacute;tape 2</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">Description du bien</h2>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="field-shell md:col-span-2 space-y-2">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.description.label }}</label>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" id="description-assist-button" class="rounded-full border border-primary bg-white px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary hover:text-white">
+                                Aide &agrave; la r&eacute;daction
+                            </button>
+                            <button type="button" data-description-tone="MODERNE" class="rounded-full border border-primary bg-primary px-3 py-2 text-xs font-semibold text-white transition">
+                                Moderne
+                            </button>
+                            <button type="button" data-description-tone="FAMILIAL" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition">
+                                Familial
+                            </button>
+                            <button type="button" data-description-tone="LUXE" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition">
+                                Luxe
+                            </button>
+                        </div>
+                    </div>
+                    {{ form.description }}
+                    <div class="rounded-[1.5rem] border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-6 text-slate-700">
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">Trame sugg&eacute;r&eacute;e</p>
+                        <p id="description-guide" class="mt-2"></p>
+                    </div>
+                    <p class="text-xs text-slate-500">Les parties entre crochets doivent &ecirc;tre personnalis&eacute;es pour finaliser votre annonce.</p>
+                    {% if form.description.errors %}<p class="text-sm text-red-600">{{ form.description.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.nb_chambres.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.nb_chambres.label }}</label>
+                    {{ form.nb_chambres }}
+                    {% if form.nb_chambres.errors %}<p class="text-sm text-red-600">{{ form.nb_chambres.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.nb_salles_bain.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.nb_salles_bain.label }}</label>
+                    {{ form.nb_salles_bain }}
+                    {% if form.nb_salles_bain.errors %}<p class="text-sm text-red-600">{{ form.nb_salles_bain.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.surface_m2.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.surface_m2.label }}</label>
+                    {{ form.surface_m2 }}
+                    {% if form.surface_m2.errors %}<p class="text-sm text-red-600">{{ form.surface_m2.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="field-shell space-y-2 md:col-span-2">
+                    <label for="{{ form.telephone_proprio.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.telephone_proprio.label }}</label>
+                    {{ form.telephone_proprio }}
+                    {% if form.telephone_proprio.errors %}<p class="text-sm text-red-600">{{ form.telephone_proprio.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    {{ form.eau_regideso }}
+                    <span>Eau</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    {{ form.elec_snel }}
+                    <span>&Eacute;lectricit&eacute;</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    {{ form.sentinelle }}
+                    <span>Sentinelle</span>
+                </label>
+                <label class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    {{ form.parking }}
+                    <span>Parking</span>
+                </label>
+                <label class="col-span-2 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 md:col-span-1">
+                    {{ form.cloture }}
+                    <span>Cl&ocirc;ture</span>
+                </label>
+            </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft md:p-7">
+            <div class="mb-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-primary/70">&Eacute;tape 3</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">Preuves et m&eacute;dias</h2>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.video_preuve.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.video_preuve.label }}</label>
+                    {{ form.video_preuve }}
+                    <p class="text-xs text-slate-500">Vid&eacute;o de preuve (Optionnel mais recommand&eacute; pour une validation rapide). Taille maximale : 20 Mo.</p>
+                    {% if form.video_preuve.errors %}<p class="text-sm text-red-600">{{ form.video_preuve.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="field-shell space-y-2">
+                    <label for="{{ form.carte_id_proprio.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.carte_id_proprio.label }}</label>
+                    {{ form.carte_id_proprio }}
+                    {% if form.carte_id_proprio.errors %}<p class="text-sm text-red-600">{{ form.carte_id_proprio.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="field-shell md:col-span-2 space-y-2">
+                    <label for="{{ photo_form.photos.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ photo_form.photos.label }}</label>
+                    {{ photo_form.photos }}
+                    <p class="text-xs text-slate-500">S&eacute;lection multiple autoris&eacute;e, avec un minimum de 5 photos et un maximum de 10 par bien.</p>
+                    <p id="photos-preview-count" class="text-xs font-semibold text-primary">{{ photo_form.existing_count|default:0 }}/10 photo(s) pr&ecirc;tes pour ce bien</p>
+                    <div class="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <p id="photos-progress-label" class="text-xs font-semibold text-slate-700">0% du quota photo utilis&eacute;</p>
+                            <p id="photos-progress-status" class="text-xs font-semibold text-amber-600">Minimum requis : 5 photos.</p>
+                        </div>
+                        <div class="h-2 overflow-hidden rounded-full bg-slate-200">
+                            <div id="photos-progress-bar" class="h-full rounded-full bg-primary transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p id="photos-client-error" class="hidden text-sm text-red-600"></p>
+                    <div id="photos-preview" class="grid grid-cols-2 gap-3 sm:grid-cols-3"></div>
+                    <p id="photos-preview-empty" class="text-xs text-slate-500">Les aper&ccedil;us des photos s'afficheront ici avant l'envoi.</p>
+                    {% if photo_form.photos.errors %}<p class="text-sm text-red-600">{{ photo_form.photos.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft md:p-7">
+            <div class="mb-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-primary/70">&Eacute;tape 4</p>
+                <h2 class="mt-2 text-2xl font-bold text-slate-900">Localisation du bien</h2>
+            </div>
+
+            <div class="space-y-4">
+                {{ form.gps_lat }}
+                {{ form.gps_long }}
+                <button id="geolocate-button" type="button" class="inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white">
+                    Utiliser ma position actuelle
+                </button>
+                <p id="geolocate-status" class="text-xs text-slate-500">
+                    Si vous n'&ecirc;tes pas sur place, indiquez simplement un point de rep&egrave;re pr&eacute;cis ci-dessus.
+                </p>
+                {% if form.gps_lat.errors %}<p class="text-sm text-red-600">{{ form.gps_lat.errors.0 }}</p>{% endif %}
+                {% if form.gps_long.errors %}<p class="text-sm text-red-600">{{ form.gps_long.errors.0 }}</p>{% endif %}
+            </div>
+        </section>
+
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-slate-500">Votre annonce sera relue avant publication.</p>
+            <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white md:w-auto">
+                {% if is_edit %}Mettre &agrave; jour l'annonce{% else %}Enregistrer l'annonce{% endif %}
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

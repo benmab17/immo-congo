@@ -1,0 +1,40 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Inscription | Immo Congo{% endblock %}
+
+{% block content %}
+<section class="mx-auto flex min-h-[calc(100vh-7rem)] max-w-md items-center px-4 py-8 sm:px-6">
+    <div class="w-full rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+        <h1 class="text-3xl font-bold text-slate-900">Créer un compte</h1>
+        <p class="mt-2 text-sm text-slate-500">Utilisez votre numéro de téléphone comme identifiant principal.</p>
+
+        <form method="post" class="mt-6 space-y-4">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ form.phone.id_for_label }}">Numéro de téléphone</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}<p class="mt-1 text-sm text-red-600">{{ form.phone.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ form.password1.id_for_label }}">Mot de passe</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-medium text-slate-700" for="{{ form.password2.id_for_label }}">Confirmation</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>{% endif %}
+            </div>
+            <button type="submit" class="w-full rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white">S'inscrire</button>
+        </form>
+
+        <p class="mt-5 text-sm text-slate-500">
+            Vous avez déjà un compte ?
+            <a href="{% url 'annonces:login' %}" class="font-semibold text-primary">Connectez-vous</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

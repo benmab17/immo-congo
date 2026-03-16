@@ -1,0 +1,295 @@
+{% extends "annonces/base.html" %}
+
+{% block title %}Gestion Admin | Immo Congo{% endblock %}
+
+{% block extra_head %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-reject-toggle]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const target = document.getElementById(button.dataset.rejectToggle);
+                if (target) {
+                    target.classList.toggle("hidden");
+                    const input = target.querySelector("textarea");
+                    if (input && !target.classList.contains("hidden")) {
+                        input.focus();
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:px-8 md:py-10">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-primary/70">Administration</p>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Gestion des annonces</h1>
+            <p class="mt-2 text-sm text-slate-500">Seuls les superusers et les membres du groupe Mod&eacute;rateurs peuvent valider ou rejeter les annonces.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <span class="font-semibold text-slate-900">Session Mod&eacute;rateur :</span> {{ session_moderateur }}
+        </div>
+    </div>
+
+    <form method="get" class="mb-6 grid grid-cols-1 gap-3 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-[1fr,1fr,1fr,1.2fr,auto]">
+        <div class="space-y-2">
+            <label for="ville" class="block text-sm font-medium text-slate-700">Ville</label>
+            <select id="ville" name="ville" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white">
+                <option value="">Toutes les villes</option>
+                {% for ville in villes_choix %}
+                    <option value="{{ ville }}" {% if filters.ville == ville %}selected{% endif %}>{{ ville }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="space-y-2">
+            <label for="categorie_bien" class="block text-sm font-medium text-slate-700">Cat&eacute;gorie</label>
+            <select id="categorie_bien" name="categorie_bien" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white">
+                <option value="">Toutes les cat&eacute;gories</option>
+                {% for categorie in categories_bien %}
+                    <option value="{{ categorie }}" {% if filters.categorie_bien == categorie %}selected{% endif %}>
+                        {% if categorie == "Entrepot" %}Entrep&ocirc;t{% else %}{{ categorie }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="space-y-2">
+            <label for="type_transaction" class="block text-sm font-medium text-slate-700">Contrat</label>
+            <select id="type_transaction" name="type_transaction" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white">
+                <option value="">Tous les contrats</option>
+                {% for transaction_type in types_transaction %}
+                    <option value="{{ transaction_type }}" {% if filters.type_transaction == transaction_type %}selected{% endif %}>
+                        {% if transaction_type == "LOCATION" %}Location{% else %}Vente{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="space-y-2">
+            <label for="search" class="block text-sm font-medium text-slate-700">Recherche</label>
+            <input id="search" name="search" value="{{ filters.search }}" placeholder="Commune, ville, propri&eacute;taire..." class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-primary focus:bg-white">
+        </div>
+        <div class="flex items-end gap-3">
+            <button type="submit" class="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white">
+                Filtrer
+            </button>
+            <a href="{% url 'annonces:gestion_admin' %}" class="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-600">
+                R&eacute;initialiser
+            </a>
+        </div>
+    </form>
+
+    <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">&Agrave; v&eacute;rifier</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">{{ stats.a_verifier }}</p>
+        </div>
+        <div class="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">Total en ligne</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">{{ stats.total_en_ligne }}</p>
+        </div>
+        <div class="rounded-[1.75rem] border border-slate-200 bg-slate-100 p-5">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Total Vendu/Lou&eacute;</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">{{ stats.total_historique }}</p>
+        </div>
+    </div>
+
+    <section class="mb-6 rounded-[2rem] border border-red-100 bg-white p-5 shadow-sm">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.25em] text-red-600">Alertes</p>
+                <h2 class="mt-1 text-2xl font-bold text-slate-900">Annonces signal&eacute;es en priorit&eacute;</h2>
+            </div>
+            <span class="rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">
+                {{ alertes|length }} signalement(s)
+            </span>
+        </div>
+
+        <div class="space-y-4">
+            {% for alerte in alertes %}
+                <article class="rounded-[1.75rem] border border-red-100 bg-red-50/40 p-4">
+                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-[130px,1fr,auto] lg:items-start">
+                        <div class="overflow-hidden rounded-[1.25rem] bg-white">
+                            {% if alerte.main_photo %}
+                                <img src="{{ alerte.main_photo.image.url }}" alt="Alerte annonce {{ alerte.logement.id }}" class="h-28 w-full object-cover">
+                            {% else %}
+                                <div class="flex h-28 items-center justify-center px-3 text-center text-xs text-slate-500">Aucune photo</div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span class="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">{{ alerte.get_motif_display }}</span>
+                                <p class="text-sm font-semibold text-slate-900">{{ alerte.logement.offre_label }}</p>
+                            </div>
+                            <p class="mt-2 text-sm text-slate-600">{{ alerte.logement.commune }}, {{ alerte.logement.ville_affichee }}</p>
+                            <p class="mt-2 text-sm text-slate-600">Signal&eacute;e par : {{ alerte.utilisateur.get_full_name|default:alerte.utilisateur.username }}</p>
+                            <p class="mt-2 text-sm text-slate-600">Propri&eacute;taire : {{ alerte.logement.proprietaire|default:"Non renseign&eacute;" }}</p>
+                            {% if alerte.commentaire %}
+                                <p class="mt-3 rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-slate-700">{{ alerte.commentaire }}</p>
+                            {% endif %}
+                            <p class="mt-2 text-xs text-slate-400">{{ alerte.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <a href="{% url 'annonces:details' alerte.logement.id %}" class="rounded-2xl border border-primary px-4 py-3 text-sm font-semibold text-primary">
+                                Voir l'annonce
+                            </a>
+                            {% if alerte.logement.proprietaire %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="logement_id" value="{{ alerte.logement.id }}">
+                                    <input type="hidden" name="action" value="ban_user">
+                                    <button type="submit" class="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white">
+                                        Bannir l'utilisateur
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                    Aucune alerte utilisateur pour le moment.
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="space-y-4">
+        {% for logement in annonces %}
+            <article class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="grid grid-cols-1 gap-5 lg:grid-cols-[260px,1fr]">
+                    <div class="overflow-hidden rounded-[1.5rem] bg-slate-100">
+                        {% if logement.video_preuve %}
+                            <video controls preload="none" class="h-52 w-full object-cover bg-slate-950">
+                                <source src="{{ logement.video_preuve.url }}">
+                                Votre navigateur ne supporte pas la lecture vid&eacute;o.
+                            </video>
+                        {% else %}
+                            <div class="flex h-52 items-center justify-center px-4 text-center text-sm text-red-600">
+                                Vid&eacute;o de preuve manquante
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <p class="text-2xl font-bold text-success">{{ logement.prix }} {{ logement.devise }}</p>
+                                    <p class="text-sm font-medium text-slate-500">{{ logement.prix_label }}</p>
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold {% if logement.type_transaction == 'LOCATION' %}bg-blue-600 text-white{% else %}bg-amber-300 text-slate-900{% endif %}">
+                                        {{ logement.offre_label }}
+                                    </span>
+                                </div>
+                                <p class="mt-2 text-sm font-medium text-slate-700">{{ logement.commune }}, {{ logement.ville_affichee }}</p>
+                                <p class="mt-2 text-sm text-slate-500">Propri&eacute;taire : {{ logement.proprietaire|default:"Non renseign&eacute;" }}</p>
+                                <p class="mt-2 text-sm text-slate-500">V&eacute;rifi&eacute; par : {{ logement.verified_by|default:"Pas encore attribu&eacute;" }}</p>
+                                {% if logement.approved_at %}
+                                    <p class="mt-2 text-sm text-slate-500">Date de validation : {{ logement.approved_at|date:"d/m/Y H:i" }}</p>
+                                {% endif %}
+                                {% if logement.rejected_at %}
+                                    <p class="mt-2 text-sm text-slate-500">Date de rejet : {{ logement.rejected_at|date:"d/m/Y H:i" }}</p>
+                                {% endif %}
+                                {% if logement.signalement_count %}
+                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ logement.signalement_count }} signalement(s) utilisateur</p>
+                                {% endif %}
+                                <p class="mt-3 line-clamp-3 text-sm leading-6 text-slate-500">{{ logement.description }}</p>
+                            </div>
+                            <a href="{% url 'annonces:details' logement.id %}" class="rounded-2xl border border-primary px-4 py-3 text-sm font-semibold text-primary">
+                                Voir l'annonce
+                            </a>
+                        </div>
+
+                        <div class="flex flex-wrap gap-3">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="logement_id" value="{{ logement.id }}">
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white">
+                                    Approuver
+                                </button>
+                            </form>
+
+                            <button type="button" data-reject-toggle="reject-{{ logement.id }}" class="rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white">
+                                Rejeter
+                            </button>
+                            {% if logement.proprietaire %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="logement_id" value="{{ logement.id }}">
+                                    <input type="hidden" name="action" value="ban_user">
+                                    <button type="submit" class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white">
+                                        Bannir l'utilisateur
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        <details class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+                            <summary class="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-primary">
+                                <span>Ouvrir le chat</span>
+                                {% if logement.owner_unread_count %}
+                                    <span class="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+                                        {{ logement.owner_unread_count }} nouveau(x)
+                                    </span>
+                                {% endif %}
+                            </summary>
+                            <div class="mt-4 space-y-3">
+                                <div class="max-h-80 space-y-3 overflow-y-auto rounded-[1.5rem] bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-3">
+                                    {% for commentaire in logement.commentaires_admin.all %}
+                                        <div class="flex {% if commentaire.auteur == logement.proprietaire %}justify-start{% else %}justify-end{% endif %}">
+                                            <div class="max-w-[88%] rounded-[1.5rem] px-4 py-3 text-sm shadow-sm {% if commentaire.auteur == logement.proprietaire %}border border-slate-200 bg-white text-slate-700{% else %}bg-primary text-white{% endif %}">
+                                                <div class="flex items-center justify-between gap-3">
+                                                    <p class="font-semibold">
+                                                        {{ commentaire.auteur.get_full_name|default:commentaire.auteur.username }}
+                                                    </p>
+                                                    {% if commentaire.auteur == logement.proprietaire and not commentaire.read_by_staff %}
+                                                        <span class="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Nouveau</span>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="mt-2 leading-6">{{ commentaire.message }}</p>
+                                                <p class="mt-2 text-xs {% if commentaire.auteur == logement.proprietaire %}text-slate-400{% else %}text-white/70{% endif %}">
+                                                    {{ commentaire.date_creation|date:"d/m/Y H:i" }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p class="text-sm text-slate-500">Aucun message pour cette annonce.</p>
+                                    {% endfor %}
+                                </div>
+                                <form method="post" action="{% url 'annonces:envoyer_message_moderation' logement.id %}" class="rounded-[1.5rem] border border-slate-200 bg-white p-3 shadow-inner">
+                                    {% csrf_token %}
+                                    <textarea name="message" rows="3" class="w-full resize-none border-0 bg-transparent px-1 py-1 text-sm outline-none" placeholder="Ex. : Il manque une photo de la cuisine"></textarea>
+                                    <div class="mt-3 flex justify-end">
+                                        <button type="submit" class="rounded-2xl border border-primary px-5 py-3 text-sm font-semibold text-primary">
+                                            Envoyer le message
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </details>
+
+                        <form id="reject-{{ logement.id }}" method="post" class="hidden rounded-[1.5rem] border border-red-100 bg-red-50 p-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="logement_id" value="{{ logement.id }}">
+                            <input type="hidden" name="action" value="reject">
+                            <label for="motif_rejet_{{ logement.id }}" class="block text-sm font-medium text-slate-700">Motif du rejet</label>
+                            <textarea id="motif_rejet_{{ logement.id }}" name="motif_rejet" rows="3" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-primary" placeholder="Expliquez clairement ce qui doit etre corrige..."></textarea>
+                            <div class="mt-3 flex justify-end">
+                                <button type="submit" class="rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white">
+                                    Confirmer le rejet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        {% empty %}
+            <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+                Aucune annonce en attente de mod&eacute;ration.
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
