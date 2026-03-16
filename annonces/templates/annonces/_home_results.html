@@ -29,9 +29,9 @@
                     <article class="card-lift overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                         <div class="relative">
                             {% if logement.image_url %}
-                                <img src="{{ logement.image_url }}" alt="Photo de {{ logement.commune }}" class="card-img h-64 w-full object-cover">
+                                <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                             {% else %}
-                                <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="card-img h-64 w-full object-cover">
+                                <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                             {% endif %}
 
                             {% if logement.statut == "VENDU" %}
@@ -126,9 +126,9 @@
             <article data-reveal class="card-lift reveal-up overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                 <div class="relative">
                     {% if logement.image_url %}
-                        <img src="{{ logement.image_url }}" alt="Photo de {{ logement.commune }}" class="card-img h-64 w-full object-cover">
+                        <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                     {% else %}
-                        <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="card-img h-64 w-full object-cover">
+                        <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                     {% endif %}
 
                     {% if logement.statut == "VENDU" %}

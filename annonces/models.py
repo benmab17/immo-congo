@@ -82,6 +82,7 @@ class Logement(models.Model):
     )
     commune = models.CharField(max_length=255)
     adresse = models.CharField(max_length=255, default="")
+    image_url = models.URLField(blank=True)
     categorie_bien = models.CharField(
         max_length=30,
         choices=CategorieBienChoices.choices,
@@ -156,6 +157,10 @@ class Logement(models.Model):
     @property
     def offre_label(self):
         return f"{self.get_categorie_bien_display()} en {self.get_type_transaction_display()}"
+
+    @property
+    def titre(self):
+        return f"{self.get_categorie_bien_display()} a {self.commune}"
 
 
 class Photo(models.Model):

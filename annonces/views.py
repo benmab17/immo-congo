@@ -38,6 +38,9 @@ def resolve_media_url(value):
 
 
 def attach_logement_image_url(logement):
+    if getattr(logement, "image_url", ""):
+        logement.image_url = resolve_media_url(logement.image_url)
+        return logement
     main_photo = getattr(logement, "main_photo", None)
     image_value = getattr(main_photo, "image", None) if main_photo else None
     logement.image_url = resolve_media_url(image_value)
