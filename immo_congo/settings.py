@@ -171,3 +171,10 @@ LOGIN_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@immocongo.cd'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Autoriser Railway pour la sécurité des formulaires (CSRF)
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-2ce12.up.railway.app',
+]
+
+
