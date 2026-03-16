@@ -156,7 +156,7 @@ if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('DATABASE_URL') or os
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 if cloudinary_enabled:
     CLOUDINARY_STORAGE = {
@@ -176,4 +176,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-2ce12.up.railway.app',
 ]
-
