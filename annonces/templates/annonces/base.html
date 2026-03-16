@@ -106,17 +106,29 @@
 
         @media (max-width: 767px) {
             .mobile-bottom-nav {
+                position: fixed !important;
+                z-index: 9999 !important;
+                pointer-events: auto;
+                inset-inline: 0;
+                bottom: 0;
                 padding: 0.55rem 0.85rem calc(20px + env(safe-area-inset-bottom));
                 box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.12);
             }
 
             .mobile-bottom-nav-grid {
                 gap: 0.35rem;
+                pointer-events: auto;
             }
 
             .mobile-bottom-nav-item {
+                display: flex;
+                position: relative;
+                z-index: 10000;
+                pointer-events: auto;
                 min-height: 68px;
+                width: 100%;
                 padding: 0.6rem 0.35rem;
+                -webkit-tap-highlight-color: transparent;
             }
 
             .mobile-bottom-nav-icon {
@@ -151,6 +163,11 @@
             header {
                 max-width: 100%;
             }
+
+            main {
+                padding-bottom: 0;
+                margin-bottom: 0;
+            }
         }
 
         .install-banner {
@@ -181,7 +198,7 @@
         </div>
     </div>
     <div id="top-progress-bar" class="top-progress fixed left-0 top-0 z-[90] h-1 w-full bg-primary"></div>
-    <div id="page-shell" class="page-shell min-h-screen pb-24 md:pb-0">
+    <div id="page-shell" class="page-shell min-h-screen pb-28 md:pb-0">
         <header class="hidden border-b border-slate-200 bg-white/95 backdrop-blur md:sticky md:top-0 md:z-40 md:block">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
                 <a href="{% url 'annonces:home' %}" class="flex items-center gap-3">
@@ -271,25 +288,25 @@
 
         <nav class="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-3 py-2 backdrop-blur md:hidden">
             <div class="mobile-bottom-nav-grid mx-auto grid max-w-lg {% if user.is_staff %}grid-cols-5{% else %}grid-cols-4{% endif %} gap-2">
-                <a href="{% url 'annonces:home' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'home' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
+                <a href="{% url 'annonces:home' %}" aria-label="Accueil" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'home' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
                     <span class="mobile-bottom-nav-icon">&#8962;</span>
                     <span class="mobile-bottom-nav-label">Accueil</span>
                 </a>
-                <a href="#recherche" class="mobile-bottom-nav-item flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium text-slate-600">
+                <a href="{% url 'annonces:home' %}#recherche" aria-label="Recherche" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'home' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
                     <span class="mobile-bottom-nav-icon">&#8981;</span>
                     <span class="mobile-bottom-nav-label">Recherche</span>
                 </a>
-                <a href="{% url 'annonces:create_logement' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'create_logement' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
+                <a href="{% url 'annonces:create_logement' %}" aria-label="Publier une annonce" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'create_logement' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
                     <span class="mobile-bottom-nav-icon">+</span>
                     <span class="mobile-bottom-nav-label">Publier</span>
                 </a>
                 {% if user.is_staff %}
-                    <a href="{% url 'annonces:gestion_admin' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'gestion_admin' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
+                    <a href="{% url 'annonces:gestion_admin' %}" aria-label="Gestion admin" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'gestion_admin' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
                         <span class="mobile-bottom-nav-icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span>
                         <span class="mobile-bottom-nav-label">Admin</span>
                     </a>
                 {% endif %}
-                <a href="{% if user.is_authenticated %}{% url 'annonces:mon_profil' %}{% else %}{% url 'annonces:login' %}{% endif %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'mon_profil' or request.resolver_match.url_name == 'login' %}is-active text-primary{% else %}text-slate-600{% endif %} relative flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
+                <a href="{% if user.is_authenticated %}{% url 'annonces:mon_profil' %}{% else %}{% url 'annonces:login' %}{% endif %}" aria-label="Profil" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'mon_profil' or request.resolver_match.url_name == 'login' %}is-active text-primary{% else %}text-slate-600{% endif %} relative flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
                     <span class="mobile-bottom-nav-icon">&#9673;</span>
                     {% if unread_notifications_count %}
                         <span class="absolute right-4 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
