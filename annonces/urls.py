@@ -100,6 +100,7 @@ urlpatterns = [
     path("gestion-admin/<int:logement_id>/message/", envoyer_message_moderation, name="envoyer_message_moderation"),
     path("moderation/", tableau_moderation, name="tableau_moderation"),
     path("logements/<int:id>/", logement_detail, name="details"),
+    path("logement/<int:pk>/", logement_detail, name="logement_detail"),
     path("logements/<int:logement_id>/unlock-contact/", unlock_contact, name="unlock_contact"),
     path("logements/<int:logement_id>/contacter/", contact_owner_message, name="contact_owner_message"),
     path("logements/<int:logement_id>/signaler/", signaler_annonce, name="signaler_annonce"),

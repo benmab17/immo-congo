@@ -444,13 +444,14 @@ def home(request):
     return render(request, "annonces/home.html", context)
 
 
-def logement_detail(request, id):
+def logement_detail(request, id=None, pk=None):
+    logement_id = pk if pk is not None else id
     logement = get_object_or_404(
         Logement.objects.prefetch_related(
             Prefetch("photos", queryset=Photo.objects.order_by("id")),
             "signalements__utilisateur",
         ),
-        id=id,
+        id=logement_id,
     )
     if (
         not can_access_public_or_private_logement(request, logement)

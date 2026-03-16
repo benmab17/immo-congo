@@ -53,11 +53,13 @@
                 <div class="swiper-slide pb-2">
                     <article class="mobile-card-wrap card-lift overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                         <div class="relative">
-                            {% if logement.image_url %}
-                                <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
-                            {% else %}
-                                <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
-                            {% endif %}
+                            <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block">
+                                {% if logement.image_url %}
+                                    <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                                {% else %}
+                                    <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                                {% endif %}
+                            </a>
 
                             {% if logement.statut == "VENDU" %}
                                 <span class="status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-900 px-3 py-2 text-[11px] text-white">VENDU</span>
@@ -79,7 +81,7 @@
                             <p class="text-sm font-semibold text-primary">{{ logement.offre_label }}</p>
                             <p class="text-2xl font-bold text-success">{{ logement.prix }} {{ logement.devise }}</p>
                             <p class="text-sm text-slate-600">{{ logement.commune }}, {{ logement.ville_affichee }}</p>
-                            <a href="{% url 'annonces:details' logement.id %}" class="primary-action inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
+                            <a href="{% url 'annonces:logement_detail' logement.pk %}" class="primary-action inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
                                 Voir les d&eacute;tails
                             </a>
                         </div>
@@ -150,11 +152,13 @@
         {% for logement in logements %}
             <article data-reveal class="mobile-card-wrap card-lift reveal-up overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                 <div class="relative">
-                    {% if logement.image_url %}
-                        <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
-                    {% else %}
-                        <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
-                    {% endif %}
+                    <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block">
+                        {% if logement.image_url %}
+                            <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                        {% else %}
+                            <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                        {% endif %}
+                    </a>
 
                     {% if logement.statut == "VENDU" %}
                         <span class="status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-900 px-3 py-2 text-[11px] text-white">VENDU</span>
@@ -213,7 +217,7 @@
                         {% if logement.cloture %}<span class="rounded-full bg-slate-100 px-3 py-2 text-slate-600">Cl&ocirc;ture</span>{% endif %}
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <a href="{% url 'annonces:details' logement.pk %}" class="primary-action inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95">Voir les d&eacute;tails</a>
+                        <a href="{% url 'annonces:logement_detail' logement.pk %}" class="primary-action inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95">Voir les d&eacute;tails</a>
                         <button type="button" data-compare-toggle data-url="{% url 'annonces:toggle_compare' logement.id %}" data-active="{% if logement.is_compared %}true{% else %}false{% endif %}" class="inline-flex rounded-full px-4 py-2 text-sm font-semibold transition {% if logement.is_compared %}bg-slate-900 text-white hover:bg-slate-800{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Comparer</button>
                     </div>
                 </div>
@@ -238,7 +242,7 @@
                 <div class="grid gap-5 xl:grid-cols-[0.95fr,1.05fr]">
                     <div class="space-y-4">
                         {% for logement in logements|slice:":6" %}
-                            <a href="{% url 'annonces:details' logement.pk %}" class="block rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
+                            <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
                                 <div class="flex items-start gap-4">
                                     {% if logement.image_url %}
                                         <img src="{{ logement.image_url }}" alt="Photo de {{ logement.commune }}" class="h-24 w-24 rounded-[1.25rem] object-cover" style="object-fit: cover;">
