@@ -20,7 +20,7 @@
             <article class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
                 <div class="relative">
                     {% if favori.logement.main_photo %}
-                        <img src="{{ favori.logement.main_photo.image.url }}" alt="Photo de {{ favori.logement.commune }}" class="h-64 w-full object-cover">
+                        <img src="{{ favori.logement.main_photo.image|media_src }}" alt="Photo de {{ favori.logement.commune }}" class="h-64 w-full object-cover" style="object-fit: cover;">
                     {% else %}
                         <div class="flex h-64 items-center justify-center bg-slate-100 text-sm text-slate-500">Aucune photo disponible</div>
                     {% endif %}
@@ -48,3 +48,4 @@
     </div>
 </section>
 {% endblock %}
+{% load annonces_media %}
