@@ -33,6 +33,29 @@
             box-shadow: 0 20px 45px rgba(15, 23, 42, 0.10) !important;
         }
 
+        .latest-card,
+        .latest-card * {
+            backface-visibility: hidden;
+        }
+
+        .latest-card-media {
+            position: relative;
+            z-index: 1;
+        }
+
+        .latest-card-badge {
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .latest-card-button {
+            position: relative;
+            z-index: 10;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
         @media (max-width: 767px) {
             .mobile-card-wrap {
                 width: 95%;
@@ -61,7 +84,7 @@
             {% for logement in logements|slice:":8" %}
                 <div class="swiper-slide pb-2">
                     <article class="mobile-card-wrap latest-card card-lift overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm swiper-no-swiping">
-                        <div class="relative">
+                        <div class="latest-card-media relative">
                             <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block swiper-no-swiping">
                                 {% if logement.image_url %}
                                     <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
@@ -71,16 +94,16 @@
                             </a>
 
                             {% if logement.statut == "VENDU" %}
-                                <span class="status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-900 px-3 py-2 text-[11px] text-white">VENDU</span>
+                                <span class="latest-card-badge status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-900 px-3 py-2 text-[11px] text-white">VENDU</span>
                             {% elif logement.statut == "LOUE" %}
-                                <span class="status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-700 px-3 py-2 text-[11px] text-white">LOU&Eacute;</span>
+                                <span class="latest-card-badge status-badge absolute left-4 top-4 rounded-[0.9rem] bg-slate-700 px-3 py-2 text-[11px] text-white">LOU&Eacute;</span>
                             {% elif logement.is_new %}
-                                <span class="card-new-badge">
+                                <span class="latest-card-badge card-new-badge">
                                     <span aria-hidden="true">⚡</span>
                                     NOUVEAU
                                 </span>
                             {% elif logement.statut == "APPROUVEE" %}
-                                <span class="verified-pulse absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow">
+                                <span class="latest-card-badge verified-pulse absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow">
                                     <i class="fa-solid fa-shield-halved"></i>
                                     Annonce v&eacute;rifi&eacute;e
                                 </span>
@@ -90,7 +113,7 @@
                             <p class="text-sm font-semibold text-primary">{{ logement.offre_label }}</p>
                             <p class="text-2xl font-bold text-success">{{ logement.prix }} {{ logement.devise }}</p>
                             <p class="text-sm text-slate-600">{{ logement.commune }}, {{ logement.ville_affichee }}</p>
-                            <a href="{% url 'annonces:logement_detail' logement.pk %}" class="primary-action swiper-no-swiping inline-flex rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
+                            <a href="{% url 'annonces:logement_detail' logement.pk %}" class="latest-card-button primary-action swiper-no-swiping rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">
                                 Voir les d&eacute;tails
                             </a>
                         </div>
