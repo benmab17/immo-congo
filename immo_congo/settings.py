@@ -4,18 +4,13 @@ Django settings for immo_congo project.
 
 import os
 from pathlib import Path
+import cloudinary
+import cloudinary_storage
 
 try:
     import dj_database_url
 except ImportError:  # pragma: no cover - local fallback before installing prod deps
     dj_database_url = None
-
-try:
-    import cloudinary  # noqa: F401
-    import cloudinary_storage  # noqa: F401
-except ImportError:  # pragma: no cover - local fallback before installing media deps
-    cloudinary = None
-    cloudinary_storage = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,18 +32,9 @@ ALLOWED_HOSTS = ['*']
 USE_WHITENOISE = os.environ.get('USE_WHITENOISE', '1').lower() in {'1', 'true', 'yes'}
 
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-}
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-
 # Application definition
 
 INSTALLED_APPS = [
-    'cloudinary_storage',
-    'cloudinary',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -159,14 +145,6 @@ STORAGES = {
     },
 }
 
-MEDIA_URL = (
-    f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/"
-    if CLOUDINARY_CLOUD_NAME
-    else '/media/'
-)
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -178,4 +156,13 @@ CSRF_TRUSTED_ORIGINS = [
     'https://web-production-2ce12.up.railway.app',
 ]
 
+INSTALLED_APPS.insert(0, 'cloudinary_storage')
+INSTALLED_APPS.insert(1, 'cloudinary')
+
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
