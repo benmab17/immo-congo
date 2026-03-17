@@ -20,8 +20,23 @@
     .reveal-up.is-visible { opacity: 1; transform: translateY(0); }
     .search-cta { transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease; }
     .search-cta:hover { transform: scale(1.03); box-shadow: 0 18px 34px rgba(0, 51, 153, 0.24); }
-    .hero-backdrop { transform-origin: center center; transition: transform 0.18s linear; will-change: transform; }
-    .hero-backdrop::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15, 23, 42, 0.28), rgba(15, 23, 42, 0.72)); }
+    .hero-backdrop {
+        transform-origin: center center;
+        transition: transform 0.18s linear;
+        will-change: transform;
+        background-image: url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1800&q=80&v=3');
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+    }
+    .hero-backdrop::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(180deg, rgba(8, 15, 35, 0.26), rgba(8, 15, 35, 0.76)),
+            linear-gradient(90deg, rgba(0, 51, 153, 0.18), rgba(0, 0, 0, 0.08));
+    }
     .results-map { min-height: 560px; border-radius: 1.75rem; overflow: hidden; }
     .status-badge { box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22); letter-spacing: 0.14em; font-weight: 800; }
     .skeleton-card { overflow: hidden; border-radius: 2rem; border: 1px solid #e2e8f0; background: white; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
@@ -614,7 +629,7 @@
 
 {% block content %}
 <section class="relative overflow-hidden bg-slate-950">
-    <div data-hero-parallax class="hero-backdrop absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80');"></div>
+    <div data-hero-parallax class="hero-backdrop absolute inset-0"></div>
     <div class="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 md:px-8 md:py-24">
         <div class="grid gap-8 lg:grid-cols-[1.08fr,0.92fr] lg:items-end">
             <div class="max-w-3xl">
