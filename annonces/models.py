@@ -162,6 +162,11 @@ class Logement(models.Model):
     def titre(self):
         return f"{self.get_categorie_bien_display()} a {self.commune}"
 
+    @property
+    def image(self):
+        first_photo = self.photos.order_by("id").first()
+        return first_photo.image if first_photo else None
+
 
 class Photo(models.Model):
     logement = models.ForeignKey(
