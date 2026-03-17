@@ -105,6 +105,7 @@
         }
 
         @media (max-width: 767px) {
+            .footer-mobile,
             .mobile-bottom-nav {
                 position: fixed !important;
                 z-index: 99999 !important;
@@ -118,11 +119,13 @@
                 box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.12);
             }
 
+            .footer-mobile .mobile-bottom-nav-grid,
             .mobile-bottom-nav-grid {
                 gap: 0.35rem;
                 pointer-events: auto !important;
             }
 
+            .footer-mobile .mobile-bottom-nav-item,
             .mobile-bottom-nav-item {
                 display: flex;
                 position: relative;
@@ -135,12 +138,16 @@
                 touch-action: manipulation;
             }
 
+            .footer-mobile a,
+            .footer-mobile span,
+            .footer-mobile i,
             .mobile-bottom-nav a,
             .mobile-bottom-nav span,
             .mobile-bottom-nav i {
                 pointer-events: auto !important;
             }
 
+            .footer-mobile .mobile-bottom-nav-icon,
             .mobile-bottom-nav-icon {
                 display: inline-flex;
                 align-items: center;
@@ -151,6 +158,7 @@
                 line-height: 1;
             }
 
+            .footer-mobile .mobile-bottom-nav-label,
             .mobile-bottom-nav-label {
                 margin-top: 0.2rem;
                 font-size: 11px;
@@ -158,6 +166,7 @@
                 text-align: center;
             }
 
+            .footer-mobile .mobile-bottom-nav-item.is-active,
             .mobile-bottom-nav-item.is-active {
                 background: rgba(0, 51, 153, 0.08);
                 color: #003399;
@@ -307,7 +316,7 @@
             +
         </a>
 
-        <nav class="mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-3 py-2 backdrop-blur md:hidden">
+        <nav class="footer-mobile mobile-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 px-3 py-2 backdrop-blur md:hidden">
             <div class="mobile-bottom-nav-grid mx-auto grid max-w-lg {% if user.is_staff %}grid-cols-5{% else %}grid-cols-4{% endif %} gap-2">
                 <a href="{% url 'annonces:home' %}" aria-label="Accueil" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'home' %}is-active text-primary{% else %}text-slate-600{% endif %} flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium">
                     <span class="mobile-bottom-nav-icon">&#8962;</span>
