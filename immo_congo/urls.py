@@ -21,5 +21,4 @@ urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
 ]
 
-if not getattr(settings, "CLOUDINARY_ENABLED", False):
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

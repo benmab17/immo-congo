@@ -43,12 +43,6 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
 
-CLOUDINARY_ENABLED = bool(
-    CLOUDINARY_STORAGE['CLOUD_NAME']
-    and CLOUDINARY_STORAGE['API_KEY']
-    and CLOUDINARY_STORAGE['API_SECRET']
-)
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -167,9 +161,6 @@ STORAGES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-if CLOUDINARY_ENABLED:
-    MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_STORAGE['CLOUD_NAME']}/"
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

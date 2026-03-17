@@ -734,9 +734,13 @@ def create_logement(request):
         logement.rejected_at = None
         logement.contact_proprietaire = logement.telephone_proprio
         logement.save()
+        print(f"DEBUG LOGEMENT ID: {logement.id}")
+        print(f"DEBUG FILES RECEIVED: {len(request.FILES.getlist('photos'))}")
 
         for image in request.FILES.getlist("photos"):
-            Photo.objects.create(logement=logement, image=image)
+            photo_instance = Photo.objects.create(logement=logement, image=image)
+            print(f"DEBUG PHOTO URL: {photo_instance.image.url}")
+            print(f"DEBUG STORAGE CLASS: {photo_instance.image.storage.__class__}")
 
         notify_users(
             get_moderators(),
@@ -783,9 +787,13 @@ def edit_logement(request, id):
         logement.approved_at = None
         logement.rejected_at = None
         logement.save()
+        print(f"DEBUG LOGEMENT ID: {logement.id}")
+        print(f"DEBUG FILES RECEIVED: {len(request.FILES.getlist('photos'))}")
 
         for image in request.FILES.getlist("photos"):
-            Photo.objects.create(logement=logement, image=image)
+            photo_instance = Photo.objects.create(logement=logement, image=image)
+            print(f"DEBUG PHOTO URL: {photo_instance.image.url}")
+            print(f"DEBUG STORAGE CLASS: {photo_instance.image.storage.__class__}")
 
         notify_users(
             get_moderators(),
