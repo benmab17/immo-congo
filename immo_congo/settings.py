@@ -42,6 +42,7 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
 
 # Application definition
 
@@ -158,7 +159,11 @@ STORAGES = {
     },
 }
 
-MEDIA_URL = '/media/'
+MEDIA_URL = (
+    f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/"
+    if CLOUDINARY_CLOUD_NAME
+    else '/media/'
+)
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
@@ -172,3 +177,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = [
     'https://web-production-2ce12.up.railway.app',
 ]
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
