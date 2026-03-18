@@ -430,7 +430,7 @@ def build_home_context(request):
 
 
 def home(request):
-    return HttpResponse("<h1>STOP : LE CODE EST BIEN MIS À JOUR</h1>")
+    return HttpResponse('<h1>RAILWAY EST ENFIN MIS A JOUR - TEST 22H00</h1>')
     context = build_home_context(request)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render_to_string("annonces/_home_results.html", context, request=request)
@@ -446,18 +446,7 @@ def home(request):
 
 
 def home(request):
-    context = build_home_context(request)
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        html = render_to_string("annonces/_home_results.html", context, request=request)
-        return JsonResponse(
-            {
-                "ok": True,
-                "html": html,
-                "map_logements_json": context["map_logements_json"],
-                "result_summary": context["result_summary"],
-            }
-        )
-    return render(request, "annonces/home.html", context)
+    return HttpResponse('<h1>RAILWAY EST ENFIN MIS A JOUR - TEST 22H00</h1>')
 
 
 def logement_detail(request, id=None, pk=None):

@@ -5,12 +5,12 @@ Django settings for immo_congo project.
 import os
 from pathlib import Path
 
-try:
-    import cloudinary  # noqa: F401
-    import cloudinary_storage  # noqa: F401
-except ImportError:  # pragma: no cover - tolerate build environments before deps settle
-    cloudinary = None
-    cloudinary_storage = None
+# try:
+#     import cloudinary  # noqa: F401
+#     import cloudinary_storage  # noqa: F401
+# except ImportError:  # pragma: no cover - tolerate build environments before deps settle
+#     cloudinary = None
+#     cloudinary_storage = None
 
 try:
     import dj_database_url
@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 USE_WHITENOISE = os.environ.get('USE_WHITENOISE', '1').lower() in {'1', 'true', 'yes'}
@@ -141,9 +141,7 @@ WHITENOISE_USE_FINDERS = True
 
 STORAGES = {
     'default': {
-        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'
-        if cloudinary and cloudinary_storage
-        else 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -163,18 +161,18 @@ CSRF_TRUSTED_ORIGINS = [
     'https://web-production-2ce12.up.railway.app',
 ]
 
-if cloudinary and cloudinary_storage:
-    INSTALLED_APPS.insert(0, 'cloudinary_storage')
-    INSTALLED_APPS.insert(1, 'cloudinary')
+# if cloudinary and cloudinary_storage:
+#     INSTALLED_APPS.insert(0, 'cloudinary_storage')
+#     INSTALLED_APPS.insert(1, 'cloudinary')
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-}
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+#     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+#     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+# }
 
-DEFAULT_FILE_STORAGE = (
-    'cloudinary_storage.storage.MediaCloudinaryStorage'
-    if cloudinary and cloudinary_storage
-    else 'django.core.files.storage.FileSystemStorage'
-)
+# DEFAULT_FILE_STORAGE = (
+#     'cloudinary_storage.storage.MediaCloudinaryStorage'
+#     if cloudinary and cloudinary_storage
+#     else 'django.core.files.storage.FileSystemStorage'
+# )
