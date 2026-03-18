@@ -445,6 +445,21 @@ def home(request):
     return render(request, "annonces/home.html", context)
 
 
+def home(request):
+    context = build_home_context(request)
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        html = render_to_string("annonces/_home_results.html", context, request=request)
+        return JsonResponse(
+            {
+                "ok": True,
+                "html": html,
+                "map_logements_json": context["map_logements_json"],
+                "result_summary": context["result_summary"],
+            }
+        )
+    return render(request, "annonces/home.html", context)
+
+
 def logement_detail(request, id=None, pk=None):
     logement_id = pk if pk is not None else id
     logement = get_object_or_404(
