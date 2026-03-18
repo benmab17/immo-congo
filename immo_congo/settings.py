@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 USE_WHITENOISE = os.environ.get('USE_WHITENOISE', '1').lower() in {'1', 'true', 'yes'}
