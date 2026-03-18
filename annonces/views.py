@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -430,6 +430,7 @@ def build_home_context(request):
 
 
 def home(request):
+    return HttpResponse("<h1>STOP : LE CODE EST BIEN MIS À JOUR</h1>")
     context = build_home_context(request)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render_to_string("annonces/_home_results.html", context, request=request)
