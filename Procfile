@@ -1,1 +1,1 @@
-web: gunicorn immo_congo.wsgi
+web: python manage.py migrate --noinput && gunicorn immo_congo.wsgi
