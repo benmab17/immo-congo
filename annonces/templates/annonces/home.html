@@ -24,7 +24,10 @@
         transform-origin: center center;
         transition: transform 0.18s linear;
         will-change: transform;
-        background-image: url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1800&q=80&v=20260317');
+        background:
+            radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 30%),
+            linear-gradient(135deg, #031633 0%, #0a2a66 48%, #123b8f 100%);
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
@@ -34,8 +37,19 @@
         position: absolute;
         inset: 0;
         background:
-            linear-gradient(180deg, rgba(8, 15, 35, 0.26), rgba(8, 15, 35, 0.76)),
-            linear-gradient(90deg, rgba(0, 51, 153, 0.18), rgba(0, 0, 0, 0.08));
+            linear-gradient(180deg, rgba(8, 15, 35, 0.16), rgba(8, 15, 35, 0.62)),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.10), rgba(255, 255, 255, 0));
+    }
+    .hero-backdrop::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 85%);
+        opacity: 0.28;
     }
     .results-map { min-height: 560px; border-radius: 1.75rem; overflow: hidden; }
     .status-badge { box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22); letter-spacing: 0.14em; font-weight: 800; }
