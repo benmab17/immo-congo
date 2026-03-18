@@ -4,8 +4,13 @@ Django settings for immo_congo project.
 
 import os
 from pathlib import Path
-import cloudinary
-import cloudinary_storage
+
+try:
+    import cloudinary  # noqa: F401
+    import cloudinary_storage  # noqa: F401
+except ImportError:  # pragma: no cover - tolerate build environments before deps settle
+    cloudinary = None
+    cloudinary_storage = None
 
 try:
     import dj_database_url
@@ -88,7 +93,7 @@ DATABASES = {
     }
 }
 
-if dj_database_url:
+if dj_database_url and os.environ.get('DATABASE_URL'):
     DATABASES['default'] = dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
@@ -136,7 +141,9 @@ WHITENOISE_USE_FINDERS = True
 
 STORAGES = {
     'default': {
-        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        if cloudinary and cloudinary_storage
+        else 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -156,13 +163,18 @@ CSRF_TRUSTED_ORIGINS = [
     'https://web-production-2ce12.up.railway.app',
 ]
 
-INSTALLED_APPS.insert(0, 'cloudinary_storage')
-INSTALLED_APPS.insert(1, 'cloudinary')
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+if cloudinary and cloudinary_storage:
+    INSTALLED_APPS.insert(0, 'cloudinary_storage')
+    INSTALLED_APPS.insert(1, 'cloudinary')
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
+
+DEFAULT_FILE_STORAGE = (
+    'cloudinary_storage.storage.MediaCloudinaryStorage'
+    if cloudinary and cloudinary_storage
+    else 'django.core.files.storage.FileSystemStorage'
+)
