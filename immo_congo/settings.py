@@ -124,7 +124,7 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 AWS_ACCESS_KEY_ID = os.getenv("SUPABASE_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("SUPABASE_SECRET_KEY")
@@ -147,8 +147,6 @@ STORAGES = {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
-
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
