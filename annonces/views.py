@@ -430,7 +430,6 @@ def build_home_context(request):
 
 
 def home(request):
-    return HttpResponse('<h1>RAILWAY EST ENFIN MIS A JOUR - TEST 22H00</h1>')
     context = build_home_context(request)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         html = render_to_string("annonces/_home_results.html", context, request=request)
@@ -443,10 +442,6 @@ def home(request):
             }
         )
     return render(request, "annonces/home.html", context)
-
-
-def home(request):
-    return HttpResponse('<h1>RAILWAY EST ENFIN MIS A JOUR - TEST 22H00</h1>')
 
 
 def logement_detail(request, id=None, pk=None):
