@@ -8,15 +8,9 @@ https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 """
 
 import os
-import sys
-import traceback
 
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'immo_congo.settings')
 
-try:
-    application = get_wsgi_application()
-except Exception:
-    traceback.print_exc(file=sys.stderr)
-    raise
+application = get_wsgi_application()
