@@ -6,6 +6,13 @@ import os
 from pathlib import Path
 
 try:
+    import cloudinary  # noqa: F401
+    import cloudinary_storage  # noqa: F401
+except ImportError:  # pragma: no cover - local fallback before deps are installed
+    cloudinary = None
+    cloudinary_storage = None
+
+try:
     import dj_database_url
 except ImportError:  # pragma: no cover - local fallback before installing prod deps
     dj_database_url = None
@@ -132,13 +139,37 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+USE_CLOUDINARY = all(
+    [
+        cloudinary,
+        cloudinary_storage,
+        os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        os.environ.get('CLOUDINARY_API_KEY'),
+        os.environ.get('CLOUDINARY_API_SECRET'),
+    ]
+)
+
+if USE_CLOUDINARY:
+    INSTALLED_APPS.insert(0, 'cloudinary_storage')
+    INSTALLED_APPS.insert(1, 'cloudinary')
+
 STORAGES = {
     'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': (
+            'cloudinary_storage.storage.MediaCloudinaryStorage'
+            if USE_CLOUDINARY
+            else 'django.core.files.storage.FileSystemStorage'
+        ),
     },
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
+}
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
 }
 
 LOGIN_URL = '/login/'
