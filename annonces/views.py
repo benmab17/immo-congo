@@ -32,10 +32,11 @@ from .models import CommentaireAdmin, ContactUnlock, Favori, Logement, MessageVi
 
 def resolve_media_url(value):
     if not value:
-        return ""
-    if isinstance(value, str):
-        return value
-    return getattr(value, "url", "") or str(value)
+        return "https://placehold.co/600x400?text=Image"
+    try:
+        return value.url
+    except Exception:
+        return str(value)
 
 
 def attach_logement_image_url(logement):
