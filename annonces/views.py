@@ -30,25 +30,6 @@ from .forms import (
 from .models import CommentaireAdmin, ContactUnlock, Favori, Logement, MessageVisiteur, Notification, Photo, Signalement
 
 
-def resolve_media_url(value):
-    if not value:
-        return "https://placehold.co/600x400?text=No+Image"
-    try:
-        return value.url
-    except Exception:
-        return str(value)
-
-
-def attach_logement_image_url(logement):
-    if getattr(logement, "image_url", ""):
-        logement.image_url = resolve_media_url(logement.image_url)
-        return logement
-    main_photo = getattr(logement, "main_photo", None)
-    image_value = getattr(main_photo, "image", None) if main_photo else None
-    logement.image_url = resolve_media_url(image_value)
-    return logement
-
-
 def safe_json_dumps(value, fallback):
     try:
         return json.dumps(value, default=str)
@@ -335,14 +316,12 @@ def build_home_context(request):
         try:
             photos = list(logement.photos.all())
             logement.main_photo = photos[0] if photos else None
-            attach_logement_image_url(logement)
             logement.is_favorite = logement.id in favorite_ids
             logement.is_compared = logement.id in compare_ids
             logement.trust_score = build_trust_score(logement, photos_count=len(photos))
             logement.is_new = bool(logement.created_at and logement.created_at >= recent_threshold)
         except Exception:
             logement.main_photo = None
-            logement.image_url = resolve_media_url(getattr(logement, "image_url", ""))
             logement.is_favorite = logement.id in favorite_ids
             logement.is_compared = logement.id in compare_ids
             logement.trust_score = build_trust_score(logement, photos_count=0)
@@ -517,7 +496,6 @@ def logement_detail(request, id=None, pk=None):
         ),
         pk=logement_id,
     )
-    attach_logement_image_url(logement)
     if (
         not can_access_public_or_private_logement(request, logement)
     ):
@@ -561,7 +539,6 @@ def logement_detail(request, id=None, pk=None):
         )
     for similar in similar_logements:
         similar.main_photo = similar.photos.first()
-        attach_logement_image_url(similar)
         similar.is_favorite = similar.id in similar_favorite_ids
     return render(
         request,
@@ -626,7 +603,6 @@ def compare_view(request):
     logements = [logement for logement in logements if can_access_public_or_private_logement(request, logement)]
     for logement in logements:
         logement.main_photo = logement.photos.first()
-        attach_logement_image_url(logement)
         logement.trust_score = build_trust_score(logement, photos_count=logement.photos.count())
     return render(request, "annonces/compare.html", {"logements": logements})
 
@@ -647,7 +623,6 @@ def proprietaire_profile(request, user_id):
     )
     for logement in logements:
         logement.main_photo = logement.photos.first()
-        attach_logement_image_url(logement)
         logement.trust_score = build_trust_score(logement, photos_count=logement.photos.count())
     stats = {
         "total": len(logements),

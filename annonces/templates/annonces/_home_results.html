@@ -90,8 +90,6 @@
                             <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block swiper-no-swiping">
                                 {% if logement.image %}
                                     <img src="{{ logement.image.url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
-                                {% elif logement.image_url %}
-                                    <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                                 {% else %}
                                     <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                                 {% endif %}
@@ -191,8 +189,6 @@
                     <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block">
                         {% if logement.image %}
                             <img src="{{ logement.image.url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
-                        {% elif logement.image_url %}
-                            <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                         {% else %}
                             <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
                         {% endif %}
@@ -284,8 +280,6 @@
                                 <div class="flex items-start gap-4">
                                     {% if logement.image %}
                                         <img src="{{ logement.image.url }}" alt="Photo de {{ logement.commune }}" class="h-24 w-24 rounded-[1.25rem] object-cover" style="object-fit: cover;">
-                                    {% elif logement.image_url %}
-                                        <img src="{{ logement.image_url }}" alt="Photo de {{ logement.commune }}" class="h-24 w-24 rounded-[1.25rem] object-cover" style="object-fit: cover;">
                                     {% else %}
                                         <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-24 w-24 rounded-[1.25rem] object-cover">
                                     {% endif %}
