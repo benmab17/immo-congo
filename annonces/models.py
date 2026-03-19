@@ -1,4 +1,3 @@
-from cloudinary.models import CloudinaryField
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
@@ -118,8 +117,8 @@ class Logement(models.Model):
     sentinelle = models.BooleanField(default=False)
     parking = models.BooleanField(default=False)
     cloture = models.BooleanField(default=False)
-    video_preuve = CloudinaryField("video", resource_type="video", blank=True, null=True)
-    carte_id_proprio = CloudinaryField("image")
+    video_preuve = models.FileField(upload_to="uploads/videos/", blank=True, null=True)
+    carte_id_proprio = models.ImageField(upload_to="uploads/id_verif/")
     point_repere = models.CharField(max_length=255, default="")
     gps_lat = models.FloatField(null=True, blank=True)
     gps_long = models.FloatField(null=True, blank=True)
@@ -175,7 +174,7 @@ class Photo(models.Model):
         on_delete=models.CASCADE,
         related_name="photos",
     )
-    image = CloudinaryField("image")
+    image = models.ImageField(upload_to="uploads/")
 
     def __str__(self):
         return f"Photo {self.pk} - {self.logement}"

@@ -46,12 +46,6 @@ def attach_logement_image_url(logement):
     main_photo = getattr(logement, "main_photo", None)
     image_value = getattr(main_photo, "image", None) if main_photo else None
     logement.image_url = resolve_media_url(image_value)
-    try:
-        if logement.image:
-            print(logement.image)
-            print(logement.image.url)
-    except Exception:
-        pass
     return logement
 
 
