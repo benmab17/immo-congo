@@ -7,6 +7,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordChangeView, PasswordResetConfirmView
 from django.core.exceptions import PermissionDenied
+from django.db import DatabaseError
 from django.db.models import Count, Prefetch, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -45,6 +46,13 @@ def attach_logement_image_url(logement):
     image_value = getattr(main_photo, "image", None) if main_photo else None
     logement.image_url = resolve_media_url(image_value)
     return logement
+
+
+def safe_json_dumps(value, fallback):
+    try:
+        return json.dumps(value, default=str)
+    except Exception:
+        return fallback
 
 
 DEFAULT_CITY_COMMUNES = {
@@ -241,21 +249,24 @@ def build_trust_score(logement, photos_count=0):
 def build_home_context(request):
     recent_threshold = timezone.now() - timezone.timedelta(days=2)
     show_history = request.GET.get("show_history") in {"1", "true", "on"}
-    base_queryset = Logement.objects.filter(statut=Logement.PublicationStatus.APPROUVEE)
-    logements_queryset = base_queryset.filter(
-        disponibilite=Logement.DisponibiliteChoices.DISPONIBLE,
-    )
-    if show_history:
-        logements_queryset = Logement.objects.filter(
-            statut__in=[
-                Logement.PublicationStatus.APPROUVEE,
-                Logement.PublicationStatus.LOUE,
-                Logement.PublicationStatus.VENDU,
-            ]
+    try:
+        base_queryset = Logement.objects.filter(statut=Logement.PublicationStatus.APPROUVEE)
+        logements_queryset = base_queryset.filter(
+            disponibilite=Logement.DisponibiliteChoices.DISPONIBLE,
         )
-    logements_queryset = logements_queryset.prefetch_related(
-        Prefetch("photos", queryset=Photo.objects.order_by("id"))
-    )
+        if show_history:
+            logements_queryset = Logement.objects.filter(
+                statut__in=[
+                    Logement.PublicationStatus.APPROUVEE,
+                    Logement.PublicationStatus.LOUE,
+                    Logement.PublicationStatus.VENDU,
+                ]
+            )
+        logements_queryset = logements_queryset.prefetch_related(
+            Prefetch("photos", queryset=Photo.objects.order_by("id"))
+        )
+    except DatabaseError as exc:
+        raise RuntimeError(f"base de donnees indisponible: {exc}") from exc
 
     ville = request.GET.get("ville", "").strip()
     ville_autre = request.GET.get("ville_autre", "").strip()
@@ -288,10 +299,13 @@ def build_home_context(request):
         except (TypeError, ValueError):
             pass
 
-    communes_queryset = logements_queryset.exclude(commune="").exclude(commune__isnull=True)
-    communes_suggestions = list(
-        communes_queryset.values_list("commune", flat=True).distinct()
-    )
+    try:
+        communes_queryset = logements_queryset.exclude(commune="").exclude(commune__isnull=True)
+        communes_suggestions = list(
+            communes_queryset.values_list("commune", flat=True).distinct()
+        )
+    except DatabaseError:
+        communes_suggestions = []
 
     sort_options = {
         "recent": "-id",
@@ -301,52 +315,78 @@ def build_home_context(request):
     }
     logements_queryset = logements_queryset.order_by(sort_options.get(sort, "-id"))
 
-    logements = list(logements_queryset)
+    try:
+        logements = list(logements_queryset)
+    except DatabaseError as exc:
+        raise RuntimeError(f"chargement des annonces impossible: {exc}") from exc
+
     compare_ids = set(request.session.get("compare_logements", []))
     favorite_ids = set()
     if request.user.is_authenticated:
-        favorite_ids = set(
-            Favori.objects.filter(utilisateur=request.user, logement__in=logements)
-            .values_list("logement_id", flat=True)
-        )
+        try:
+            favorite_ids = set(
+                Favori.objects.filter(utilisateur=request.user, logement__in=logements)
+                .values_list("logement_id", flat=True)
+            )
+        except DatabaseError:
+            favorite_ids = set()
     for logement in logements:
-        logement.main_photo = logement.photos.first()
-        attach_logement_image_url(logement)
-        logement.is_favorite = logement.id in favorite_ids
-        logement.is_compared = logement.id in compare_ids
-        logement.trust_score = build_trust_score(logement, photos_count=logement.photos.count())
-        logement.is_new = bool(logement.created_at and logement.created_at >= recent_threshold)
+        try:
+            photos = list(logement.photos.all())
+            logement.main_photo = photos[0] if photos else None
+            attach_logement_image_url(logement)
+            logement.is_favorite = logement.id in favorite_ids
+            logement.is_compared = logement.id in compare_ids
+            logement.trust_score = build_trust_score(logement, photos_count=len(photos))
+            logement.is_new = bool(logement.created_at and logement.created_at >= recent_threshold)
+        except Exception:
+            logement.main_photo = None
+            logement.image_url = resolve_media_url(getattr(logement, "image_url", ""))
+            logement.is_favorite = logement.id in favorite_ids
+            logement.is_compared = logement.id in compare_ids
+            logement.trust_score = build_trust_score(logement, photos_count=0)
+            logement.is_new = False
 
     ville_communes_map = {
         city: list(dict.fromkeys(communes))
         for city, communes in DEFAULT_CITY_COMMUNES.items()
     }
-    for logement in logements_queryset.only("ville", "ville_autre", "commune"):
-        ville_key = logement.ville_affichee
-        if not ville_key or not logement.commune:
-            continue
-        ville_communes_map.setdefault(ville_key, [])
-        if logement.commune not in ville_communes_map[ville_key]:
-            ville_communes_map[ville_key].append(logement.commune)
+    try:
+        for logement in logements_queryset.only("ville", "ville_autre", "commune"):
+            ville_key = logement.ville_affichee
+            if not ville_key or not logement.commune:
+                continue
+            ville_communes_map.setdefault(ville_key, [])
+            if logement.commune not in ville_communes_map[ville_key]:
+                ville_communes_map[ville_key].append(logement.commune)
+    except DatabaseError:
+        pass
 
-    hero_stats = {
-        "logements_verifies": Logement.objects.filter(
-            statut=Logement.PublicationStatus.APPROUVEE
-        ).count(),
-        "agences_partenaires": User.objects.filter(
-            is_active=True,
-            logements__statut__in=[
-                Logement.PublicationStatus.APPROUVEE,
-                Logement.PublicationStatus.LOUE,
-                Logement.PublicationStatus.VENDU,
-            ],
-        )
-        .annotate(total_biens_publics=Count("logements", distinct=True))
-        .filter(total_biens_publics__gte=3)
-        .distinct()
-        .count(),
-        "proprietaires_satisfaits": User.objects.filter(is_active=True).count(),
-    }
+    try:
+        hero_stats = {
+            "logements_verifies": Logement.objects.filter(
+                statut=Logement.PublicationStatus.APPROUVEE
+            ).count(),
+            "agences_partenaires": User.objects.filter(
+                is_active=True,
+                logements__statut__in=[
+                    Logement.PublicationStatus.APPROUVEE,
+                    Logement.PublicationStatus.LOUE,
+                    Logement.PublicationStatus.VENDU,
+                ],
+            )
+            .annotate(total_biens_publics=Count("logements", distinct=True))
+            .filter(total_biens_publics__gte=3)
+            .distinct()
+            .count(),
+            "proprietaires_satisfaits": User.objects.filter(is_active=True).count(),
+        }
+    except DatabaseError:
+        hero_stats = {
+            "logements_verifies": len(logements),
+            "agences_partenaires": 0,
+            "proprietaires_satisfaits": 0,
+        }
     result_summary = {
         "count": len(logements),
         "city_label": city_query or "toutes les villes",
@@ -379,35 +419,47 @@ def build_home_context(request):
                     "query": f"?ville={city_query}&type_transaction=VENTE",
                 }
             )
-    market_highlights = {
-        "villes_couvertes": Logement.objects.exclude(statut=Logement.PublicationStatus.BROUILLON)
-        .values_list("ville", flat=True)
-        .distinct()
-        .count(),
-        "locations_actives": base_queryset.filter(type_transaction=Logement.TypeTransactionChoices.LOCATION).count(),
-        "ventes_actives": base_queryset.filter(type_transaction=Logement.TypeTransactionChoices.VENTE).count(),
-    }
-    map_logements = [
-        {
-            "id": logement.id,
-            "title": logement.offre_label,
-            "price": f"{logement.prix} {logement.devise}",
-            "ville": logement.ville_affichee,
-            "commune": logement.commune,
-            "lat": logement.gps_lat,
-            "lng": logement.gps_long,
-            "url": f"/logements/{logement.id}/",
+    try:
+        market_highlights = {
+            "villes_couvertes": Logement.objects.exclude(statut=Logement.PublicationStatus.BROUILLON)
+            .values_list("ville", flat=True)
+            .distinct()
+            .count(),
+            "locations_actives": base_queryset.filter(type_transaction=Logement.TypeTransactionChoices.LOCATION).count(),
+            "ventes_actives": base_queryset.filter(type_transaction=Logement.TypeTransactionChoices.VENTE).count(),
         }
-        for logement in logements
-        if logement.gps_lat is not None and logement.gps_long is not None
-    ]
+    except DatabaseError:
+        market_highlights = {
+            "villes_couvertes": 0,
+            "locations_actives": 0,
+            "ventes_actives": 0,
+        }
+    map_logements = []
+    for logement in logements:
+        try:
+            if logement.gps_lat is None or logement.gps_long is None:
+                continue
+            map_logements.append(
+                {
+                    "id": logement.id,
+                    "title": logement.offre_label,
+                    "price": f"{logement.prix} {logement.devise}",
+                    "ville": logement.ville_affichee,
+                    "commune": logement.commune or "",
+                    "lat": logement.gps_lat,
+                    "lng": logement.gps_long,
+                    "url": f"/logements/{logement.id}/",
+                }
+            )
+        except Exception:
+            continue
 
     return {
         "default_image_url": "https://placehold.co/900x700/f8f7f2/003399?text=Immo+Congo",
         "logements": logements,
         "villes_choix": [choice for choice, _ in Logement.VilleChoices.choices],
         "communes_suggestions": communes_suggestions,
-        "ville_communes_map_json": json.dumps(ville_communes_map),
+        "ville_communes_map_json": safe_json_dumps(ville_communes_map, "{}"),
         "filters": {
             "ville": ville,
             "ville_autre": ville_autre,
@@ -425,23 +477,34 @@ def build_home_context(request):
         "result_summary": result_summary,
         "smart_suggestions": smart_suggestions[:3],
         "market_highlights": market_highlights,
-        "map_logements_json": json.dumps(map_logements),
+        "map_logements_json": safe_json_dumps(map_logements, "[]"),
     }
 
 
 def home(request):
-    context = build_home_context(request)
+    try:
+        context = build_home_context(request)
+    except Exception as e:
+        return HttpResponse(f"ERREUR HOME: {str(e)}")
+
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        html = render_to_string("annonces/_home_results.html", context, request=request)
-        return JsonResponse(
-            {
-                "ok": True,
-                "html": html,
-                "map_logements_json": context["map_logements_json"],
-                "result_summary": context["result_summary"],
-            }
-        )
-    return render(request, "annonces/home.html", context)
+        try:
+            html = render_to_string("annonces/_home_results.html", context, request=request)
+            return JsonResponse(
+                {
+                    "ok": True,
+                    "html": html,
+                    "map_logements_json": context["map_logements_json"],
+                    "result_summary": context["result_summary"],
+                }
+            )
+        except Exception as e:
+            return HttpResponse(f"ERREUR HOME AJAX: {str(e)}")
+
+    try:
+        return render(request, "annonces/home.html", context)
+    except Exception as e:
+        return HttpResponse(f"ERREUR HOME TEMPLATE: {str(e)}")
 
 
 def logement_detail(request, id=None, pk=None):

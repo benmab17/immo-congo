@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', '.railway.app']
 
 
 # Application definition
@@ -146,5 +146,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Autoriser Railway pour la sécurité des formulaires (CSRF)
 CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
     'https://web-production-2ce12.up.railway.app',
 ]
