@@ -1,6 +1,4 @@
 {% extends "annonces/base.html" %}
-{% load annonces_media %}
-
 {% block title %}Gestion Admin | Immo Congo{% endblock %}
 
 {% block extra_head %}
@@ -113,7 +111,7 @@
                     <div class="grid grid-cols-1 gap-4 lg:grid-cols-[130px,1fr,auto] lg:items-start">
                         <div class="overflow-hidden rounded-[1.25rem] bg-white">
                             {% if alerte.main_photo %}
-                                <img src="{{ alerte.main_photo.image|media_src }}" alt="Alerte annonce {{ alerte.logement.id }}" class="h-28 w-full object-cover" style="object-fit: cover;">
+                                <img src="{{ alerte.main_photo.image.url }}" alt="Alerte annonce {{ alerte.logement.id }}" class="h-28 w-full object-cover" style="object-fit: cover;">
                             {% else %}
                                 <div class="flex h-28 items-center justify-center px-3 text-center text-xs text-slate-500">Aucune photo</div>
                             {% endif %}
@@ -294,4 +292,3 @@
     </div>
 </section>
 {% endblock %}
-{% load annonces_media %}

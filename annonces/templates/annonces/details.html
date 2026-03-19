@@ -351,12 +351,12 @@
                         <button
                             type="button"
                             data-gallery-thumb
-                            data-full-src="{{ photo.image|media_src }}"
+                            data-full-src="{{ photo.image.url }}"
                             data-alt="Photo {{ forloop.counter }}"
                             class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
                             aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
                         >
-                            <img src="{{ photo.image|media_src }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;">
+                            <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;">
                         </button>
                     {% empty %}
                         <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">Aucune photo suppl&eacute;mentaire</div>

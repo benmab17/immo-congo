@@ -13,7 +13,7 @@
             {% for logement in logements %}
                 <article class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                     {% if logement.main_photo %}
-                        <img src="{{ logement.main_photo.image|media_src }}" alt="Photo de {{ logement.commune }}" class="h-56 w-full object-cover" style="object-fit: cover;">
+                        <img src="{{ logement.main_photo.image.url }}" alt="Photo de {{ logement.commune }}" class="h-56 w-full object-cover" style="object-fit: cover;">
                     {% endif %}
                     <div class="space-y-4 p-5">
                         <div>
@@ -41,4 +41,3 @@
     {% endif %}
 </section>
 {% endblock %}
-{% load annonces_media %}
