@@ -5,12 +5,9 @@ Django settings for immo_congo project.
 import os
 from pathlib import Path
 
-try:
-    import cloudinary  # noqa: F401
-    import cloudinary_storage  # noqa: F401
-except ImportError:  # pragma: no cover - local fallback before deps are installed
-    cloudinary = None
-    cloudinary_storage = None
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
 
 try:
     import dj_database_url
@@ -130,47 +127,25 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-USE_CLOUDINARY = all(
-    [
-        cloudinary,
-        cloudinary_storage,
-        os.environ.get('CLOUDINARY_CLOUD_NAME'),
-        os.environ.get('CLOUDINARY_API_KEY'),
-        os.environ.get('CLOUDINARY_API_SECRET'),
-    ]
-)
-
-if USE_CLOUDINARY:
-    INSTALLED_APPS.insert(0, 'cloudinary_storage')
-    INSTALLED_APPS.insert(1, 'cloudinary')
+INSTALLED_APPS.insert(0, 'cloudinary_storage')
+INSTALLED_APPS.insert(1, 'cloudinary')
 
 STORAGES = {
-    'default': {
-        'BACKEND': (
-            'cloudinary_storage.storage.MediaCloudinaryStorage'
-            if USE_CLOUDINARY
-            else 'django.core.files.storage.FileSystemStorage'
-        ),
-    },
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

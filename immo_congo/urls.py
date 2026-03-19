@@ -1,5 +1,3 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse
@@ -20,7 +18,3 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('sw.js', service_worker, name='service_worker'),
 ]
-
-if settings.DEBUG:
-    # MEDIA served only in development (DEBUG=True)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
