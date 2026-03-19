@@ -32,7 +32,7 @@ from .models import CommentaireAdmin, ContactUnlock, Favori, Logement, MessageVi
 
 def resolve_media_url(value):
     if not value:
-        return "https://placehold.co/600x400?text=Image"
+        return "https://placehold.co/600x400?text=No+Image"
     try:
         return value.url
     except Exception:

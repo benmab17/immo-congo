@@ -21,4 +21,6 @@ urlpatterns = [
     path('sw.js', service_worker, name='service_worker'),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    # MEDIA served only in development (DEBUG=True)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
