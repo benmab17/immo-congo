@@ -29,7 +29,11 @@ cloudinary.config(
 # ⚠️ IMPORTANT POUR PROD
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    "web-production-2ce12.up.railway.app",
+    "immocongo.org",
+    "www.immocongo.org",
+]
 
 # APPS
 INSTALLED_APPS = [
@@ -131,6 +135,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.railway.app',
-    'https://web-production-2ce12.up.railway.app',
+    "https://*.railway.app",
+    "https://web-production-2ce12.up.railway.app",
+    "https://immocongo.org",
+    "https://www.immocongo.org",
 ]
