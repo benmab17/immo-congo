@@ -518,11 +518,18 @@
         })();
     </script>
     <script>
-    window.addEventListener("pageshow", function (event) {
-        if (event.persisted) {
-            window.location.reload();
-        }
-    });
+    (function () {
+        window.addEventListener("pageshow", function (event) {
+            const navigationEntry =
+                window.performance &&
+                typeof window.performance.getEntriesByType === "function" &&
+                window.performance.getEntriesByType("navigation")[0];
+
+            if (event.persisted || (navigationEntry && navigationEntry.type === "back_forward")) {
+                window.location.reload();
+            }
+        });
+    })();
     </script>
 </body>
 </html>
