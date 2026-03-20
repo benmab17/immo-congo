@@ -21,9 +21,9 @@ SECRET_KEY = os.environ.get(
 
 # CLOUDINARY CONFIG
 cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", "ddqpkdpra"),
+    api_key=os.getenv("CLOUDINARY_API_KEY", "749863123517848"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET", "nSXXY-8X3wYUElo8-snnQMj-gCs"),
 )
 
 # ⚠️ IMPORTANT POUR PROD
