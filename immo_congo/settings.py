@@ -4,33 +4,34 @@ Django settings for immo_congo project.
 
 import os
 from pathlib import Path
+import cloudinary
 
 try:
     import dj_database_url
-except ImportError:  # pragma: no cover - local fallback before installing prod deps
+except ImportError:
     dj_database_url = None
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECRET KEY
 SECRET_KEY = os.environ.get(
     'SECRET_KEY',
     'django-insecure-mon^a%8f^e+goc(%fk-fqzot^)6ttwh@kb4h3ikpjlq^=5hz4o',
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# CLOUDINARY CONFIG
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+)
+
+# ⚠️ IMPORTANT POUR PROD
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ['*']
 
-
-# Application definition
-
+# APPS
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,9 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
+    'cloudinary',
+    'cloudinary_storage',
+
     'annonces',
 ]
 
+# MIDDLEWARE
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -73,10 +79,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'immo_congo.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# DATABASE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -91,50 +94,42 @@ if dj_database_url and os.environ.get('DATABASE_URL'):
         ssl_require=False,
     )
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
+# PASSWORDS
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
+# I18N
 LANGUAGE_CODE = 'fr'
-
 TIME_ZONE = 'Africa/Kinshasa'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
+# STATIC
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
+# ❌ IMPORTANT : ON NE GARDE PLUS MEDIA LOCAL
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
+
+# ✅ CLOUDINARY STORAGE
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# LOGIN
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+
+# EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@immocongo.cd'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Autoriser Railway pour la sécurité des formulaires (CSRF)
+# CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://web-production-2ce12.up.railway.app',
