@@ -64,13 +64,6 @@ class Logement(models.Model):
         TERRAIN = "Terrain", "Terrain"
         ENTREPOT = "Entrepot", "Entrep\u00f4t"
 
-    class TypePieceChoices(models.TextChoices):
-        CARTE_ELECTEUR = "CARTE_ELECTEUR", "Carte d'electeur"
-        PASSEPORT = "PASSEPORT", "Passeport"
-        PERMIS = "PERMIS", "Permis de conduire"
-        ATTESTATION_PROPRIETE = "ATTESTATION_PROPRIETE", "Attestation ou document de propriete"
-        AUTRE = "AUTRE", "Autre piece justificative"
-
     ville = models.CharField(max_length=20, choices=VilleChoices.choices)
     ville_autre = models.CharField(max_length=255, blank=True)
     code_immo = models.CharField(max_length=20, unique=True, null=True, blank=True, editable=False)
@@ -125,11 +118,6 @@ class Logement(models.Model):
     sentinelle = models.BooleanField(default=False)
     parking = models.BooleanField(default=False)
     cloture = models.BooleanField(default=False)
-    type_piece_justificative = models.CharField(
-        max_length=40,
-        choices=TypePieceChoices.choices,
-        default=TypePieceChoices.CARTE_ELECTEUR,
-    )
     video_preuve = CloudinaryField(
         'video',
         resource_type='video',

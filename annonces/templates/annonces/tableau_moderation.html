@@ -183,7 +183,6 @@
                                 </div>
                                 <p class="mt-2 text-sm font-medium text-slate-700">{{ logement.commune }}, {{ logement.ville_affichee }}</p>
                                 <p class="mt-2 text-sm text-slate-500">Propri&eacute;taire : {{ logement.proprietaire|default:"Non renseign&eacute;" }}</p>
-                                <p class="mt-2 text-sm text-slate-500">Pi&egrave;ce fournie : {{ logement.get_type_piece_justificative_display }}</p>
                                 <p class="mt-2 text-sm text-slate-500">V&eacute;rifi&eacute; par : {{ logement.verified_by|default:"Pas encore attribu&eacute;" }}</p>
                                 {% if logement.approved_at %}
                                     <p class="mt-2 text-sm text-slate-500">Date de validation : {{ logement.approved_at|date:"d/m/Y H:i" }}</p>
