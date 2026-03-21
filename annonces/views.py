@@ -1018,6 +1018,57 @@ def update_listing_status(request, id, target_status):
 
 
 @login_required
+def toggle_listing_visibility(request, id):
+    if request.method != "POST":
+        return redirect("annonces:mes_annonces")
+
+    logement = get_object_or_404(Logement, id=id, proprietaire=request.user)
+    if logement.statut == Logement.PublicationStatus.BROUILLON:
+        logement.statut = Logement.PublicationStatus.EN_ATTENTE
+        logement.disponibilite = Logement.DisponibiliteChoices.DISPONIBLE
+        logement.motif_rejet = None
+        logement.verified_by = None
+        logement.rejected_at = None
+        logement.save(update_fields=["statut", "disponibilite", "motif_rejet", "verified_by", "rejected_at"])
+        notify_users(
+            get_moderators(),
+            "Annonce reactivee a verifier",
+            f"Une annonce reactivee doit etre reverifiee a {logement.ville_affichee}, {logement.commune}.",
+            logement=logement,
+            lien="/gestion-admin/",
+        )
+        messages.success(
+            request,
+            "L'annonce a ete remise en verification. Elle sera republiquee apres validation."
+        )
+        return redirect("annonces:mes_annonces")
+
+    if logement.statut in {
+        Logement.PublicationStatus.APPROUVEE,
+        Logement.PublicationStatus.EN_ATTENTE,
+        Logement.PublicationStatus.REJETEE,
+    }:
+        logement.statut = Logement.PublicationStatus.BROUILLON
+        logement.disponibilite = Logement.DisponibiliteChoices.INDISPONIBLE
+        logement.save(update_fields=["statut", "disponibilite"])
+        messages.success(request, "L'annonce a ete masquee.")
+    else:
+        messages.error(request, "Cette annonce ne peut pas etre masquee pour le moment.")
+    return redirect("annonces:mes_annonces")
+
+
+@login_required
+def delete_logement(request, id):
+    if request.method != "POST":
+        return redirect("annonces:mes_annonces")
+
+    logement = get_object_or_404(Logement, id=id, proprietaire=request.user)
+    logement.delete()
+    messages.success(request, "L'annonce a ete supprimee.")
+    return redirect("annonces:mes_annonces")
+
+
+@login_required
 def mes_annonces(request):
     Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
     annonces = list(

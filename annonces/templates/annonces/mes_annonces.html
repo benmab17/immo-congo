@@ -60,6 +60,13 @@
                                     <p class="text-sm text-slate-500">Rejet&eacute;e le {{ annonce.rejected_at|date:"d/m/Y H:i" }}</p>
                                 {% endif %}
                             </div>
+                        {% elif annonce.statut == "BROUILLON" %}
+                            <div class="space-y-2">
+                                <span class="inline-flex rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-800">Masqu&eacute;e</span>
+                                <p class="max-w-sm text-sm leading-6 text-slate-500">
+                                    Cette annonce est cachee. Vous pouvez la remettre en verification quand vous voulez.
+                                </p>
+                            </div>
                         {% else %}
                             <div class="space-y-2">
                                 <span class="inline-flex rounded-full bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-700">En cours de v&eacute;rification</span>
@@ -73,6 +80,21 @@
                             <a href="{% url 'annonces:edit_logement' annonce.id %}" class="rounded-2xl border border-primary px-4 py-3 text-sm font-semibold text-primary">
                                 Modifier
                             </a>
+                            {% if annonce.statut == "BROUILLON" %}
+                                <form method="post" action="{% url 'annonces:toggle_listing_visibility' annonce.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700">
+                                        Remettre en ligne
+                                    </button>
+                                </form>
+                            {% elif annonce.statut == "APPROUVEE" or annonce.statut == "EN_ATTENTE" or annonce.statut == "REJETEE" %}
+                                <form method="post" action="{% url 'annonces:toggle_listing_visibility' annonce.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700">
+                                        Masquer
+                                    </button>
+                                </form>
+                            {% endif %}
                             {% if annonce.statut == "APPROUVEE" %}
                                 <form method="post" action="{% url 'annonces:update_listing_status' annonce.id 'LOUE' %}">
                                     {% csrf_token %}
@@ -87,6 +109,12 @@
                                     </button>
                                 </form>
                             {% endif %}
+                            <form method="post" action="{% url 'annonces:delete_logement' annonce.id %}" onsubmit="return confirm('Supprimer definitivement cette annonce ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="rounded-2xl border border-red-200 px-4 py-3 text-sm font-semibold text-red-600">
+                                    Supprimer
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
