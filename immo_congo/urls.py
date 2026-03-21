@@ -25,7 +25,7 @@ def static_text_file(request, relative_path, content_type):
 
 urlpatterns = [
     path('', include('annonces.urls')),
-    path('admin/', admin.site.urls),
+    path('secure-admin-immocongo-2026/', admin.site.urls),
     path('sw.js', service_worker, name='service_worker'),
     path(
         'robots.txt',
