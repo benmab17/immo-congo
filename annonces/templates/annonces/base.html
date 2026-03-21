@@ -425,6 +425,15 @@
             const dismissInstallBanner = document.getElementById("dismiss-install-banner");
             let audioContext;
             let deferredInstallPrompt = null;
+            const showInstallBanner = () => {
+                if (!installBanner) return;
+                if (window.matchMedia("(display-mode: standalone)").matches) return;
+                installBanner.classList.add("is-visible");
+            };
+            const hideInstallBanner = () => {
+                if (!installBanner) return;
+                installBanner.classList.remove("is-visible");
+            };
 
             const setTopProgress = (active, value = 0.72) => {
                 if (!topProgressBar) return;
@@ -466,9 +475,7 @@
                 window.addEventListener("beforeinstallprompt", (event) => {
                     event.preventDefault();
                     deferredInstallPrompt = event;
-                    if (installBanner && !window.matchMedia("(display-mode: standalone)").matches) {
-                        installBanner.classList.add("is-visible");
-                    }
+                    showInstallBanner();
                 });
 
                 if (installButton) {
@@ -477,15 +484,20 @@
                         deferredInstallPrompt.prompt();
                         await deferredInstallPrompt.userChoice;
                         deferredInstallPrompt = null;
-                        installBanner && installBanner.classList.remove("is-visible");
+                        hideInstallBanner();
                     });
                 }
 
                 if (dismissInstallBanner) {
                     dismissInstallBanner.addEventListener("click", () => {
-                        installBanner && installBanner.classList.remove("is-visible");
+                        hideInstallBanner();
                     });
                 }
+
+                window.addEventListener("appinstalled", () => {
+                    deferredInstallPrompt = null;
+                    hideInstallBanner();
+                });
 
                 requestAnimationFrame(() => pageShell && pageShell.classList.add("page-ready"));
                 document.querySelectorAll("a[href]").forEach((link) => {
