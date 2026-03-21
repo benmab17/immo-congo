@@ -15,10 +15,28 @@ def service_worker(request):
     response["Service-Worker-Allowed"] = "/"
     return response
 
+
+def static_text_file(request, relative_path, content_type):
+    file_path = finders.find(relative_path)
+    if not file_path:
+        return HttpResponse("", content_type=content_type, status=404)
+    with open(file_path, "r", encoding="utf-8") as static_file:
+        return HttpResponse(static_file.read(), content_type=content_type)
+
 urlpatterns = [
     path('', include('annonces.urls')),
     path('admin/', admin.site.urls),
     path('sw.js', service_worker, name='service_worker'),
+    path(
+        'robots.txt',
+        lambda request: static_text_file(request, 'robots.txt', 'text/plain; charset=utf-8'),
+        name='robots_txt',
+    ),
+    path(
+        'sitemap.xml',
+        lambda request: static_text_file(request, 'sitemap.xml', 'application/xml; charset=utf-8'),
+        name='sitemap_xml',
+    ),
 ]
 
 urlpatterns += [

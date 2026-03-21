@@ -131,7 +131,7 @@ LOGIN_REDIRECT_URL = '/'
 
 # EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@immocongo.cd'
+DEFAULT_FROM_EMAIL = 'contact@immocongo.org'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
