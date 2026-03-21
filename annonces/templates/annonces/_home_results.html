@@ -89,9 +89,9 @@
                         <div class="latest-card-media relative">
                             <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block swiper-no-swiping">
                                 {% if logement.image_url %}
-                                    <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                                    <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;" loading="lazy" decoding="async">
                                 {% else %}
-                                    <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                                    <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;" loading="lazy" decoding="async">
                                 {% endif %}
                             </a>
 
@@ -188,9 +188,9 @@
                 <div class="relative">
                     <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block">
                         {% if logement.image_url %}
-                            <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                            <img src="{{ logement.image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;" loading="lazy" decoding="async">
                         {% else %}
-                            <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;">
+                            <img src="{{ default_image_url }}" alt="{{ logement.titre }}" class="card-img" style="width:100%; height:200px; object-fit:cover;" loading="lazy" decoding="async">
                         {% endif %}
                     </a>
 
@@ -279,9 +279,9 @@
                             <a href="{% url 'annonces:logement_detail' logement.pk %}" class="block rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
                                 <div class="flex items-start gap-4">
                                     {% if logement.image_url %}
-                                        <img src="{{ logement.image_url }}" alt="Photo de {{ logement.commune }}" class="h-24 w-24 rounded-[1.25rem] object-cover" style="object-fit: cover;">
+                                        <img src="{{ logement.image_url }}" alt="Photo de {{ logement.commune }}" class="h-24 w-24 rounded-[1.25rem] object-cover" style="object-fit: cover;" loading="lazy" decoding="async">
                                     {% else %}
-                                        <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-24 w-24 rounded-[1.25rem] object-cover">
+                                        <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-24 w-24 rounded-[1.25rem] object-cover" loading="lazy" decoding="async">
                                     {% endif %}
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm font-semibold text-primary">{{ logement.offre_label }}</p>

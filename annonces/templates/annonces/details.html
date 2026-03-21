@@ -4,7 +4,6 @@
 {% block title %}D&eacute;tails | Immo Congo{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -356,7 +355,7 @@
                             class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
                             aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
                         >
-                            <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;">
+                            <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;" loading="lazy" decoding="async">
                         </button>
                     {% empty %}
                         <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">Aucune photo suppl&eacute;mentaire</div>
@@ -697,9 +696,9 @@
             <article class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
                 <div class="relative">
                     {% if similar.image_url %}
-                        <img src="{{ similar.image_url }}" alt="{{ similar.titre }}" class="h-56 w-full object-cover" style="object-fit: cover;">
+                        <img src="{{ similar.image_url }}" alt="{{ similar.titre }}" class="h-56 w-full object-cover" style="object-fit: cover;" loading="lazy" decoding="async">
                     {% else %}
-                        <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-56 w-full object-cover">
+                        <img src="{{ default_image_url }}" alt="Image par d&eacute;faut Immo Congo" class="h-56 w-full object-cover" loading="lazy" decoding="async">
                     {% endif %}
                     <span class="absolute left-4 top-4 rounded-[999px] bg-gradient-to-r from-orange-500 to-orange-400 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-500/30">
                         {{ similar.offre_label }}

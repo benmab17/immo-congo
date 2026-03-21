@@ -358,16 +358,13 @@ def build_home_context(request):
         city: list(dict.fromkeys(communes))
         for city, communes in DEFAULT_CITY_COMMUNES.items()
     }
-    try:
-        for logement in logements_queryset.only("ville", "ville_autre", "commune"):
-            ville_key = logement.ville_affichee
-            if not ville_key or not logement.commune:
-                continue
-            ville_communes_map.setdefault(ville_key, [])
-            if logement.commune not in ville_communes_map[ville_key]:
-                ville_communes_map[ville_key].append(logement.commune)
-    except DatabaseError:
-        pass
+    for logement in logements:
+        ville_key = logement.ville_affichee
+        if not ville_key or not logement.commune:
+            continue
+        ville_communes_map.setdefault(ville_key, [])
+        if logement.commune not in ville_communes_map[ville_key]:
+            ville_communes_map[ville_key].append(logement.commune)
 
     try:
         hero_stats = {
