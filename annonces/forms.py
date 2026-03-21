@@ -256,6 +256,7 @@ class LogementForm(forms.ModelForm):
             "sentinelle",
             "parking",
             "cloture",
+            "type_piece_justificative",
             "video_preuve",
             "carte_id_proprio",
             "gps_lat",
@@ -294,6 +295,7 @@ class LogementForm(forms.ModelForm):
             "nb_salles_bain": forms.NumberInput(attrs={"class": BASE_INPUT_CSS}),
             "surface_m2": forms.NumberInput(attrs={"class": BASE_INPUT_CSS, "step": "0.01"}),
             "telephone_proprio": forms.TextInput(attrs={"class": BASE_INPUT_CSS, "placeholder": "+243..."}),
+            "type_piece_justificative": forms.Select(attrs={"class": BASE_INPUT_CSS}),
             "video_preuve": forms.ClearableFileInput(attrs={"class": BASE_INPUT_CSS}),
             "carte_id_proprio": forms.ClearableFileInput(attrs={"class": BASE_INPUT_CSS}),
             "gps_lat": forms.NumberInput(attrs={"class": "hidden", "step": "any"}),
@@ -310,8 +312,9 @@ class LogementForm(forms.ModelForm):
             "telephone_proprio": "T\u00e9l\u00e9phone du propri\u00e9taire",
             "elec_snel": "\u00c9lectricit\u00e9 SNEL",
             "cloture": "Cl\u00f4ture",
+            "type_piece_justificative": "Type de piece justificative",
             "video_preuve": "Vid\u00e9o de preuve",
-            "carte_id_proprio": "Carte d'identit\u00e9 du propri\u00e9taire",
+            "carte_id_proprio": "Piece justificative du proprietaire",
         }
         error_messages = {
             "video_preuve": {

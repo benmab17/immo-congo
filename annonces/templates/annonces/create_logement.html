@@ -601,8 +601,15 @@
                     {% if form.video_preuve.errors %}<p class="text-sm text-red-600">{{ form.video_preuve.errors.0 }}</p>{% endif %}
                 </div>
                 <div class="field-shell space-y-2">
+                    <label for="{{ form.type_piece_justificative.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.type_piece_justificative.label }}</label>
+                    {{ form.type_piece_justificative }}
+                    <p class="text-xs text-slate-500">Choisissez le document le plus adapte : carte d'electeur, passeport, permis, attestation de propriete ou autre piece justificative.</p>
+                    {% if form.type_piece_justificative.errors %}<p class="text-sm text-red-600">{{ form.type_piece_justificative.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="field-shell space-y-2">
                     <label for="{{ form.carte_id_proprio.id_for_label }}" class="block text-sm font-medium text-slate-700">{{ form.carte_id_proprio.label }}</label>
                     {{ form.carte_id_proprio }}
+                    <p class="text-xs text-slate-500">Ajoutez une image lisible du document choisi. Un document usage ou partiellement abime peut etre accepte s'il reste exploitable pour la verification.</p>
                     {% if form.carte_id_proprio.errors %}<p class="text-sm text-red-600">{{ form.carte_id_proprio.errors.0 }}</p>{% endif %}
                 </div>
                 <div class="field-shell md:col-span-2 space-y-2">
