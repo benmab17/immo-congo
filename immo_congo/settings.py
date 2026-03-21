@@ -5,6 +5,7 @@ Django settings for immo_congo project.
 import os
 from pathlib import Path
 import cloudinary
+from django.core.exceptions import ImproperlyConfigured
 
 try:
     import dj_database_url
@@ -13,18 +14,26 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECRET KEY
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-mon^a%8f^e+goc(%fk-fqzot^)6ttwh@kb4h3ikpjlq^=5hz4o',
-)
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    if os.getenv("DEBUG", "False") == "True":
+        SECRET_KEY = "django-insecure-local-dev-only-key-change-me"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY manquante en production.")
 
-# CLOUDINARY CONFIG
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", "ddqpkdpra"),
-    api_key=os.getenv("CLOUDINARY_API_KEY", "749863123517848"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET", "nSXXY-8X3wYUElo8-snnQMj-gCs"),
-)
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True,
+    )
+elif os.getenv("DEBUG", "False") != "True":
+    raise ImproperlyConfigured("Configuration Cloudinary manquante en production.")
 
 # ⚠️ IMPORTANT POUR PROD
 DEBUG = os.getenv("DEBUG", "False") == "True"
@@ -142,3 +151,16 @@ CSRF_TRUSTED_ORIGINS = [
     "https://immocongo.org",
     "https://www.immocongo.org",
 ]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+X_FRAME_OPTIONS = "DENY"
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG

@@ -219,7 +219,7 @@ def build_trust_score(logement, photos_count=0):
         reasons.append("Video fournie")
     if logement.carte_id_proprio:
         score += 8
-        reasons.append("Identite verifiable")
+        reasons.append("Piece justificative fournie")
     if logement.gps_lat is not None and logement.gps_long is not None:
         score += 8
         reasons.append("GPS disponible")
@@ -489,7 +489,9 @@ def home(request):
     try:
         context = build_home_context(request)
     except Exception as e:
-        return HttpResponse(f"ERREUR HOME: {str(e)}")
+        if settings.DEBUG:
+            return HttpResponse(f"ERREUR HOME: {str(e)}")
+        return HttpResponse("Erreur interne temporaire.", status=500)
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         try:
@@ -503,12 +505,16 @@ def home(request):
                 }
             )
         except Exception as e:
-            return HttpResponse(f"ERREUR HOME AJAX: {str(e)}")
+            if settings.DEBUG:
+                return HttpResponse(f"ERREUR HOME AJAX: {str(e)}")
+            return HttpResponse("Erreur interne temporaire.", status=500)
 
     try:
         return render(request, "annonces/home.html", context)
     except Exception as e:
-        return HttpResponse(f"ERREUR HOME TEMPLATE: {str(e)}")
+        if settings.DEBUG:
+            return HttpResponse(f"ERREUR HOME TEMPLATE: {str(e)}")
+        return HttpResponse("Erreur interne temporaire.", status=500)
 
 
 def logement_detail(request, id=None, pk=None):
@@ -801,13 +807,9 @@ def create_logement(request):
         logement.rejected_at = None
         logement.contact_proprietaire = logement.telephone_proprio
         logement.save()
-        print(f"DEBUG LOGEMENT ID: {logement.id}")
-        print(f"DEBUG FILES RECEIVED: {len(request.FILES.getlist('photos'))}")
 
         for image in request.FILES.getlist("photos"):
-            photo_instance = Photo.objects.create(logement=logement, image=image)
-            print(f"DEBUG PHOTO URL: {photo_instance.image.url}")
-            print(f"DEBUG STORAGE CLASS: {photo_instance.image.storage.__class__}")
+            Photo.objects.create(logement=logement, image=image)
 
         notify_users(
             get_moderators(),
@@ -854,13 +856,9 @@ def edit_logement(request, id):
         logement.approved_at = None
         logement.rejected_at = None
         logement.save()
-        print(f"DEBUG LOGEMENT ID: {logement.id}")
-        print(f"DEBUG FILES RECEIVED: {len(request.FILES.getlist('photos'))}")
 
         for image in request.FILES.getlist("photos"):
-            photo_instance = Photo.objects.create(logement=logement, image=image)
-            print(f"DEBUG PHOTO URL: {photo_instance.image.url}")
-            print(f"DEBUG STORAGE CLASS: {photo_instance.image.storage.__class__}")
+            Photo.objects.create(logement=logement, image=image)
 
         notify_users(
             get_moderators(),

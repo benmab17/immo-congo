@@ -211,6 +211,7 @@ class SignalementForm(forms.ModelForm):
 
 
 class LogementForm(forms.ModelForm):
+    MAX_IMAGE_SIZE = 8 * 1024 * 1024
     MAX_VIDEO_SIZE = 20 * 1024 * 1024
 
     def clean(self):
@@ -229,9 +230,23 @@ class LogementForm(forms.ModelForm):
         video = self.cleaned_data.get("video_preuve")
         if not video:
             return video
+        content_type = getattr(video, "content_type", "")
+        if content_type and not content_type.startswith("video/"):
+            raise forms.ValidationError("Le fichier video envoye n'est pas valide.")
         if getattr(video, "size", 0) > self.MAX_VIDEO_SIZE:
             raise forms.ValidationError("La vidéo dépasse 20 Mo. Réduisez sa taille avant l'envoi.")
         return video
+
+    def clean_carte_id_proprio(self):
+        document = self.cleaned_data.get("carte_id_proprio")
+        if not document:
+            return document
+        content_type = getattr(document, "content_type", "")
+        if content_type and not content_type.startswith("image/"):
+            raise forms.ValidationError("La piece justificative doit etre une image valide.")
+        if getattr(document, "size", 0) > self.MAX_IMAGE_SIZE:
+            raise forms.ValidationError("La piece justificative depasse 8 Mo. Reduisez sa taille avant l'envoi.")
+        return document
 
     class Meta:
         model = Logement
@@ -361,4 +376,10 @@ class PhotoUploadForm(forms.Form):
                 f"Ce bien peut contenir au maximum {self.MAX_PHOTOS} photos. "
                 f"Vous pouvez encore ajouter {remaining} photo(s)."
             )
+        for photo in photos:
+            content_type = getattr(photo, "content_type", "")
+            if content_type and not content_type.startswith("image/"):
+                raise forms.ValidationError("Toutes les photos doivent etre des images valides.")
+            if getattr(photo, "size", 0) > LogementForm.MAX_IMAGE_SIZE:
+                raise forms.ValidationError("Chaque photo doit faire au maximum 8 Mo.")
         return photos
