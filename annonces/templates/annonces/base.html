@@ -291,7 +291,7 @@
             {% if messages %}
                 <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 md:px-8">
                     {% for message in messages %}
-                        <div class="mb-3 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                        <div class="mb-3 rounded-2xl px-4 py-3 text-sm shadow-sm {% if message.tags == 'success' %}border border-emerald-200 bg-emerald-50 text-emerald-800{% elif message.tags == 'error' %}border border-red-200 bg-red-50 text-red-800{% elif message.tags == 'warning' %}border border-amber-200 bg-amber-50 text-amber-800{% else %}border border-blue-100 bg-white text-slate-700{% endif %}">
                             {{ message }}
                         </div>
                     {% endfor %}
