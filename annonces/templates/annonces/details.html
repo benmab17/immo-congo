@@ -1,4 +1,5 @@
 {% extends "annonces/base.html" %}
+{% load cloudinary %}
 {% load humanize %}
 
 {% block title %}D&eacute;tails | Immo Congo{% endblock %}
@@ -325,12 +326,13 @@
                 <div class="hide-scrollbar flex snap-x snap-mandatory overflow-x-auto">
                     {% if logement.image %}
                         <div class="min-w-full snap-center">
+                            {% cloudinary_url logement.image.name as main_image_url %}
                             <img
                                 id="gallery-main-image"
-                                src="{{ logement.image.url }}"
-                                data-full-src="{{ logement.image.url }}"
+                                src="{{ main_image_url }}"
+                                data-full-src="{{ main_image_url }}"
                                 alt="{{ logement.titre }}"
-                                class="gallery-main-image h-[290px] w-full object-cover sm:h-[380px] md:h-[480px]"
+                                class="gallery-main-image img-fluid w-full h-auto object-cover sm:h-[380px] md:h-[480px]"
                             >
                         </div>
                     {% else %}
@@ -342,7 +344,8 @@
                 {% if photos|length > 1 %}
                     <div class="flex gap-2 overflow-x-auto px-4 py-4">
                         {% for photo in photos %}
-                            <img src="{{ photo.image.url }}" class="img-fluid rounded h-16 w-20 object-cover" alt="Miniature" loading="lazy" decoding="async">
+                            {% cloudinary_url photo.image.name as thumb_image_url %}
+                            <img src="{{ thumb_image_url }}" class="h-16 w-20 rounded object-cover" alt="Miniature" loading="lazy" decoding="async">
                         {% endfor %}
                     </div>
                 {% endif %}
