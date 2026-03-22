@@ -10,34 +10,7 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .gallery-main-image {
-        opacity: 1;
-        transition: opacity 0.28s ease;
-        cursor: zoom-in;
-    }
-
-    .gallery-main-image.is-fading {
-        opacity: 0.18;
-    }
-
-    .gallery-thumb {
-        cursor: pointer;
-        transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-        opacity: 0.76;
-    }
-
-    .gallery-thumb:hover {
-        transform: translateY(-1px);
-        opacity: 0.94;
-    }
-
-    .gallery-thumb.is-active {
-        opacity: 1;
-        box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.9);
-    }
-
-    .lightbox-backdrop {
-        background: rgba(15, 23, 42, 0.86);
-        backdrop-filter: blur(6px);
+        cursor: default;
     }
 
     .floating-glass {
@@ -92,7 +65,7 @@
     }
 
     @media print {
-        header, footer, nav, #detail-action-bar, #signalement-panel, #signalement-toggle, #gallery-lightbox {
+        header, footer, nav, #detail-action-bar, #signalement-panel, #signalement-toggle {
             display: none !important;
         }
 
@@ -116,79 +89,6 @@
                 panel.classList.toggle("hidden");
             });
         }
-
-        const mainImage = document.getElementById("gallery-main-image");
-        const thumbButtons = Array.from(document.querySelectorAll("[data-gallery-thumb]"));
-        const lightbox = document.getElementById("gallery-lightbox");
-        const lightboxImage = document.getElementById("gallery-lightbox-image");
-        const lightboxClose = document.getElementById("gallery-lightbox-close");
-
-        const setActiveThumb = (targetSrc) => {
-            thumbButtons.forEach((button) => {
-                const isActive = button.dataset.fullSrc === targetSrc;
-                button.classList.toggle("is-active", isActive);
-                button.setAttribute("aria-pressed", isActive ? "true" : "false");
-            });
-        };
-
-        const updateMainImage = (src, alt) => {
-            if (!mainImage || !src || mainImage.src === src) {
-                setActiveThumb(src || (mainImage ? mainImage.src : ""));
-                return;
-            }
-
-            mainImage.classList.add("is-fading");
-            window.setTimeout(() => {
-                mainImage.src = src;
-                mainImage.alt = alt || mainImage.alt;
-                mainImage.dataset.fullSrc = src;
-                setActiveThumb(src);
-                mainImage.classList.remove("is-fading");
-            }, 120);
-        };
-
-        thumbButtons.forEach((button) => {
-            button.addEventListener("click", () => {
-                updateMainImage(button.dataset.fullSrc, button.dataset.alt);
-            });
-        });
-
-        const openLightbox = () => {
-            if (!lightbox || !lightboxImage || !mainImage) return;
-            lightboxImage.src = mainImage.dataset.fullSrc || mainImage.src;
-            lightboxImage.alt = mainImage.alt;
-            lightbox.classList.remove("hidden");
-            document.body.classList.add("overflow-hidden");
-        };
-
-        const closeLightbox = () => {
-            if (!lightbox) return;
-            lightbox.classList.add("hidden");
-            document.body.classList.remove("overflow-hidden");
-        };
-
-        if (mainImage) {
-            mainImage.addEventListener("click", openLightbox);
-            setActiveThumb(mainImage.dataset.fullSrc || mainImage.src);
-        }
-
-        if (lightboxClose) {
-            lightboxClose.addEventListener("click", closeLightbox);
-        }
-
-        if (lightbox) {
-            lightbox.addEventListener("click", (event) => {
-                if (event.target === lightbox) {
-                    closeLightbox();
-                }
-            });
-        }
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape" && lightbox && !lightbox.classList.contains("hidden")) {
-                closeLightbox();
-            }
-        });
 
         const getCookie = (name) => {
             const value = `; ${document.cookie}`;
@@ -328,9 +228,8 @@
                         <div class="min-w-full snap-center">
                             {% cloudinary_url logement.image.name as main_image_url %}
                             <img
-                                id="gallery-main-image"
+                                id="main-image"
                                 src="{{ main_image_url }}"
-                                data-full-src="{{ main_image_url }}"
                                 alt="{{ logement.titre }}"
                                 class="gallery-main-image img-fluid w-full h-auto object-cover sm:h-[380px] md:h-[480px]"
                             >
@@ -345,7 +244,7 @@
                     <div class="flex gap-2 overflow-x-auto px-4 py-4">
                         {% for photo in photos %}
                             {% cloudinary_url photo.image.name as thumb_image_url %}
-                            <img src="{{ thumb_image_url }}" class="h-16 w-20 rounded object-cover" alt="Miniature" loading="lazy" decoding="async">
+                            <img src="{{ thumb_image_url }}" class="thumb-img h-16 w-20 rounded object-cover" alt="Miniature" loading="lazy" decoding="async" onclick="changeImage(this.src)">
                         {% endfor %}
                     </div>
                 {% endif %}
@@ -713,22 +612,9 @@
 </section>
 {% endif %}
 
-<div id="gallery-lightbox" class="lightbox-backdrop fixed inset-0 z-[80] hidden p-4 sm:p-8">
-    <button
-        id="gallery-lightbox-close"
-        type="button"
-        class="absolute right-4 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-xl text-white backdrop-blur"
-        aria-label="Fermer l'image"
-    >
-        <i class="fa-solid fa-xmark"></i>
-    </button>
-    <div class="flex h-full items-center justify-center">
-        <img
-            id="gallery-lightbox-image"
-            src=""
-            alt=""
-            class="max-h-full max-w-full rounded-[1.75rem] object-contain shadow-2xl"
-        >
-    </div>
-</div>
+<script>
+  function changeImage(newSrc) {
+    document.getElementById('main-image').src = newSrc;
+  }
+</script>
 {% endblock %}
