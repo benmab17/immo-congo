@@ -49,7 +49,8 @@ def resolve_media_url(value):
 
 
 def attach_logement_image_url(logement):
-    if getattr(logement, "image_url", "") and str(logement.image_url).startswith(("http://", "https://")):
+    existing_image_url = str(getattr(logement, "image_url", "") or "")
+    if existing_image_url.startswith(("http://", "https://", "/")):
         return logement
     logement.image_url = resolve_media_url(getattr(logement, "image", None))
     return logement
