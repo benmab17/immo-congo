@@ -661,7 +661,7 @@
                 </p>
             </div>
 
-            <form id="recherche" method="get" class="search-card border border-white/60 bg-white/95 p-4 shadow-soft backdrop-blur md:rounded-[2rem] md:p-6">
+            <form id="recherche" method="get" action="{% url 'annonces:home' %}" class="search-card border border-white/60 bg-white/95 p-4 shadow-soft backdrop-blur md:rounded-[2rem] md:p-6">
                 <input type="hidden" id="ville" name="ville" value="{{ filters.ville }}">
                 <input type="hidden" id="commune" name="commune" value="{{ filters.commune }}">
 
