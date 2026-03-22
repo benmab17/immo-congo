@@ -285,6 +285,13 @@ def build_home_context(request):
     sort = request.GET.get("sort", "").strip()
     city_query = ville_autre if ville == Logement.VilleChoices.AUTRE else ville
 
+    # The homepage UI pre-fills the price controls with starter values.
+    # Treat those untouched defaults as "no price filter" to avoid hiding listings.
+    if prix_min == "100":
+        prix_min = ""
+    if prix_max == "5000":
+        prix_max = ""
+
     if city_query:
         logements_queryset = logements_queryset.filter(
             Q(ville__iexact=city_query) | Q(ville_autre__icontains=city_query)
