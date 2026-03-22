@@ -16,6 +16,10 @@ env/
 # Django
 db.sqlite3
 media/
+!media/
+media/*
+!media/annonces/
+!media/annonces/*
 staticfiles/
 
 # Editors and OS files
