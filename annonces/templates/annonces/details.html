@@ -323,22 +323,12 @@
         <div class="space-y-5">
             <div data-cinematic class="cinematic-base overflow-hidden rounded-[2rem] bg-white shadow-soft">
                 <div class="hide-scrollbar flex snap-x snap-mandatory overflow-x-auto">
-                    {% if photos %}
+                    {% if logement.image %}
                         <div class="min-w-full snap-center">
                             <img
                                 id="gallery-main-image"
-                                src="{{ photos.0.image.url }}"
-                                data-full-src="{{ photos.0.image.url }}"
-                                alt="{{ logement.titre }}"
-                                class="gallery-main-image h-[290px] w-full object-cover sm:h-[380px] md:h-[480px]"
-                            >
-                        </div>
-                    {% elif logement.image_url %}
-                        <div class="min-w-full snap-center">
-                            <img
-                                id="gallery-main-image"
-                                src="{{ logement.image_url }}"
-                                data-full-src="{{ logement.image_url }}"
+                                src="{{ logement.image.url }}"
+                                data-full-src="{{ logement.image.url }}"
                                 alt="{{ logement.titre }}"
                                 class="gallery-main-image h-[290px] w-full object-cover sm:h-[380px] md:h-[480px]"
                             >
@@ -349,26 +339,22 @@
                         </div>
                     {% endif %}
                 </div>
-                <div class="flex gap-2 overflow-x-auto px-4 py-4">
-                    {% for photo in photos %}
-                        <button
-                            type="button"
-                            data-gallery-thumb
-                            data-full-src="{{ photo.image.url }}"
-                            data-alt="Photo {{ forloop.counter }}"
-                            class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
-                            aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
-                        >
-                            <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;" loading="lazy" decoding="async">
-                        </button>
-                      {% empty %}
-                          {% if logement.image_url %}
-                              <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">Une seule photo disponible.</div>
-                          {% else %}
-                              <div class="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">Aucune photo disponible.</div>
-                          {% endif %}
-                      {% endfor %}
-                </div>
+                {% if photos|length > 1 %}
+                    <div class="flex gap-2 overflow-x-auto px-4 py-4">
+                        {% for photo in photos %}
+                            <button
+                                type="button"
+                                data-gallery-thumb
+                                data-full-src="{{ photo.image.url }}"
+                                data-alt="Photo {{ forloop.counter }}"
+                                class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
+                                aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+                            >
+                                <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;" loading="lazy" decoding="async">
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
 
             <div data-cinematic class="cinematic-base rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
