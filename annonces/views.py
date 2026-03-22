@@ -367,23 +367,26 @@ def build_home_context(request):
             ville_communes_map[ville_key].append(logement.commune)
 
     try:
+        public_stats_queryset = Logement.objects.filter(
+            statut__in=[
+                Logement.PublicationStatus.APPROUVEE,
+                Logement.PublicationStatus.LOUE,
+                Logement.PublicationStatus.VENDU,
+            ]
+        )
         hero_stats = {
-            "logements_verifies": Logement.objects.filter(
+            "logements_verifies": public_stats_queryset.filter(
                 statut=Logement.PublicationStatus.APPROUVEE
             ).count(),
-            "agences_partenaires": User.objects.filter(
-                is_active=True,
-                logements__statut__in=[
-                    Logement.PublicationStatus.APPROUVEE,
-                    Logement.PublicationStatus.LOUE,
-                    Logement.PublicationStatus.VENDU,
-                ],
-            )
-            .annotate(total_biens_publics=Count("logements", distinct=True))
-            .filter(total_biens_publics__gte=3)
+            "agences_partenaires": public_stats_queryset.exclude(proprietaire__isnull=True)
+            .values("proprietaire_id")
+            .annotate(total_biens_publics=Count("id"))
+            .filter(total_biens_publics__gte=1)
+            .count(),
+            "proprietaires_satisfaits": public_stats_queryset.exclude(proprietaire__isnull=True)
+            .values("proprietaire_id")
             .distinct()
             .count(),
-            "proprietaires_satisfaits": User.objects.filter(is_active=True).count(),
         }
     except DatabaseError:
         hero_stats = {
