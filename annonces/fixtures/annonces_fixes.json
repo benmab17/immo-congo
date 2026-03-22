@@ -238,5 +238,101 @@
       "approved_at": "2026-03-22T14:44:41Z",
       "rejected_at": null
     }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9901,
+    "fields": {
+      "logement": 9001,
+      "image": "annonces/appartement-gombe.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9902,
+    "fields": {
+      "logement": 9001,
+      "image": "annonces/studio-bandal.png"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9903,
+    "fields": {
+      "logement": 9002,
+      "image": "annonces/maison-golf.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9904,
+    "fields": {
+      "logement": 9002,
+      "image": "annonces/villa-ngaliema.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9905,
+    "fields": {
+      "logement": 9003,
+      "image": "annonces/terrain-keshero.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9906,
+    "fields": {
+      "logement": 9003,
+      "image": "annonces/entrepot-limete.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9907,
+    "fields": {
+      "logement": 9004,
+      "image": "annonces/studio-bandal.png"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9908,
+    "fields": {
+      "logement": 9004,
+      "image": "annonces/appartement-gombe.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9909,
+    "fields": {
+      "logement": 9005,
+      "image": "annonces/villa-ngaliema.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9910,
+    "fields": {
+      "logement": 9005,
+      "image": "annonces/maison-golf.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9911,
+    "fields": {
+      "logement": 9006,
+      "image": "annonces/entrepot-limete.jpg"
+    }
+  },
+  {
+    "model": "annonces.photo",
+    "pk": 9912,
+    "fields": {
+      "logement": 9006,
+      "image": "annonces/terrain-keshero.jpg"
+    }
   }
 ]

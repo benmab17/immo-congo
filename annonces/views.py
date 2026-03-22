@@ -587,7 +587,6 @@ def logement_detail(request, id=None, pk=None):
         request,
         "annonces/details.html",
         {
-            "default_image_url": "https://placehold.co/1200x900/f8f7f2/003399?text=Immo+Congo",
             "logement": logement,
             "photos": photos,
             "is_unlocked": is_unlocked,
