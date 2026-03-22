@@ -342,16 +342,7 @@
                 {% if photos|length > 1 %}
                     <div class="flex gap-2 overflow-x-auto px-4 py-4">
                         {% for photo in photos %}
-                            <button
-                                type="button"
-                                data-gallery-thumb
-                                data-full-src="{{ photo.image.url }}"
-                                data-alt="Photo {{ forloop.counter }}"
-                                class="gallery-thumb {% if forloop.first %}is-active{% endif %} overflow-hidden rounded-2xl"
-                                aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
-                            >
-                                <img src="{{ photo.image.url }}" alt="Miniature {{ forloop.counter }}" class="h-16 w-20 rounded-2xl object-cover" style="object-fit: cover;" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ logement.image.url }}'; this.closest('[data-gallery-thumb]').dataset.fullSrc='{{ logement.image.url }}';">
-                            </button>
+                            <img src="{{ photo.image.url }}" class="img-fluid rounded h-16 w-20 object-cover" alt="Miniature" loading="lazy" decoding="async">
                         {% endfor %}
                     </div>
                 {% endif %}
